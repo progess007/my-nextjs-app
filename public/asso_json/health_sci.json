@@ -1,0 +1,302 @@
+[
+    {
+        "rule_number": 1,
+        "antecedents": ["General Medicine, Health Professions", "Medicine"],
+        "consequent": "Science",
+        "support": 310,
+        "confidence": 0.93,
+        "lift": 1.02,
+        "leverage": 0.01,
+        "conviction": 1.19
+    },
+    {
+        "rule_number": 2,
+        "antecedents": ["Novel", "Language and literature"],
+        "consequent": "Science",
+        "support": 195,
+        "confidence": 0.93,
+        "lift": 1.01,
+        "leverage": 0,
+        "conviction": 1.09
+    },
+    {
+        "rule_number": 3,
+        "antecedents": ["ï»¿Philosophy Psychology", "Language and literature"],
+        "consequent": "Medicine",
+        "support": 129,
+        "confidence": 0.93,
+        "lift": 1.18,
+        "leverage": 0.02,
+        "conviction": 2.66
+    },
+    {
+        "rule_number": 4,
+        "antecedents": ["ï»¿Philosophy Psychology", "Novel"],
+        "consequent": "Science",
+        "support": 156,
+        "confidence": 0.92,
+        "lift": 1.01,
+        "leverage": 0,
+        "conviction": 1
+    },
+    {
+        "rule_number": 5,
+        "antecedents": ["General Medicine, Health Professions"],
+        "consequent": "Science",
+        "support": 478,
+        "confidence": 0.92,
+        "lift": 1,
+        "leverage": 0,
+        "conviction": 1.02
+    },
+    {
+        "rule_number": 6,
+        "antecedents": ["ï»¿Philosophy Psychology", "Language and literature", "Science"],
+        "consequent": "Medicine",
+        "support": 116,
+        "confidence": 0.92,
+        "lift": 1.17,
+        "leverage": 0.02,
+        "conviction": 2.41
+    },
+    {
+        "rule_number": 7,
+        "antecedents": ["Technology", "Medicine"],
+        "consequent": "Science",
+        "support": 114,
+        "confidence": 0.92,
+        "lift": 1,
+        "leverage": 0,
+        "conviction": 0.93
+    },
+    {
+        "rule_number": 8,
+        "antecedents": ["Medicine"],
+        "consequent": "Science",
+        "support": 754,
+        "confidence": 0.92,
+        "lift": 1,
+        "leverage": 0,
+        "conviction": 1
+    },
+    {
+        "rule_number": 9,
+        "antecedents": ["Novel", "Language and literature", "Medicine"],
+        "consequent": "Science",
+        "support": 167,
+        "confidence": 0.92,
+        "lift": 1,
+        "leverage": 0,
+        "conviction": 0.94
+    },
+    {
+        "rule_number": 10,
+        "antecedents": ["ï»¿Philosophy Psychology"],
+        "consequent": "Science",
+        "support": 321,
+        "confidence": 0.92,
+        "lift": 1,
+        "leverage": 0,
+        "conviction": 0.96
+    },
+    {
+        "rule_number": 11,
+        "antecedents": ["ï»¿Philosophy Psychology", "Novel", "Medicine"],
+        "consequent": "Science",
+        "support": 130,
+        "confidence": 0.92,
+        "lift": 1,
+        "leverage": 0,
+        "conviction": 0.9
+    },
+    {
+        "rule_number": 12,
+        "antecedents": ["General Medicine, Health Professions", "Medicine", "Social Science"],
+        "consequent": "Science",
+        "support": 105,
+        "confidence": 0.91,
+        "lift": 1,
+        "leverage": 0,
+        "conviction": 0.86
+    },
+    {
+        "rule_number": 13,
+        "antecedents": ["Language and literature", "Social Science"],
+        "consequent": "Science",
+        "support": 166,
+        "confidence": 0.91,
+        "lift": 0.99,
+        "leverage": 0,
+        "conviction": 0.84
+    },
+    {
+        "rule_number": 14,
+        "antecedents": ["ï»¿Philosophy Psychology", "Language and literature"],
+        "consequent": "Science",
+        "support": 126,
+        "confidence": 0.91,
+        "lift": 0.99,
+        "leverage": 0,
+        "conviction": 0.82
+    },
+    {
+        "rule_number": 15,
+        "antecedents": ["Novel", "Medicine", "Social Science"],
+        "consequent": "Science",
+        "support": 150,
+        "confidence": 0.9,
+        "lift": 0.99,
+        "leverage": 0,
+        "conviction": 0.81
+    },
+    {
+        "rule_number": 16,
+        "antecedents": ["ï»¿Philosophy Psychology", "Medicine"],
+        "consequent": "Science",
+        "support": 261,
+        "confidence": 0.9,
+        "lift": 0.98,
+        "leverage": 0,
+        "conviction": 0.82
+    },
+    {
+        "rule_number": 17,
+        "antecedents": ["General Medicine, Health Professions", "Social Science"],
+        "consequent": "Science",
+        "support": 207,
+        "confidence": 0.9,
+        "lift": 0.98,
+        "leverage": 0,
+        "conviction": 0.79
+    },
+    {
+        "rule_number": 18,
+        "antecedents": ["ï»¿Philosophy Psychology", "Language and literature", "Medicine"],
+        "consequent": "Science",
+        "support": 116,
+        "confidence": 0.9,
+        "lift": 0.98,
+        "leverage": 0,
+        "conviction": 0.76
+    },
+    {
+        "rule_number": 19,
+        "antecedents": ["Language and literature"],
+        "consequent": "Science",
+        "support": 352,
+        "confidence": 0.9,
+        "lift": 0.98,
+        "leverage": -0.01,
+        "conviction": 0.77
+    },
+    {
+        "rule_number": 20,
+        "antecedents": ["Language and literature", "Medicine"],
+        "consequent": "Science",
+        "support": 294,
+        "confidence": 0.89,
+        "lift": 0.97,
+        "leverage": -0.01,
+        "conviction": 0.76
+    },
+    {
+        "rule_number": 21,
+        "antecedents": ["Social Science"],
+        "consequent": "Science",
+        "support": 460,
+        "confidence": 0.89,
+        "lift": 0.97,
+        "leverage": -0.01,
+        "conviction": 0.76
+    },
+    {
+        "rule_number": 22,
+        "antecedents": ["Novel", "Medicine"],
+        "consequent": "Science",
+        "support": 312,
+        "confidence": 0.89,
+        "lift": 0.97,
+        "leverage": -0.01,
+        "conviction": 0.74
+    },
+    {
+        "rule_number": 23,
+        "antecedents": ["Medicine", "Social Science"],
+        "consequent": "Science",
+        "support": 340,
+        "confidence": 0.89,
+        "lift": 0.97,
+        "leverage": -0.01,
+        "conviction": 0.73
+    },
+    {
+        "rule_number": 24,
+        "antecedents": ["Novel"],
+        "consequent": "Science",
+        "support": 380,
+        "confidence": 0.89,
+        "lift": 0.97,
+        "leverage": -0.01,
+        "conviction": 0.74
+    },
+    {
+        "rule_number": 25,
+        "antecedents": ["Language and literature", "Medicine", "Social Science"],
+        "consequent": "Science",
+        "support": 137,
+        "confidence": 0.89,
+        "lift": 0.97,
+        "leverage": 0,
+        "conviction": 0.71
+    },
+    {
+        "rule_number": 26,
+        "antecedents": ["Novel", "Social Science"],
+        "consequent": "Science",
+        "support": 179,
+        "confidence": 0.88,
+        "lift": 0.96,
+        "leverage": -0.01,
+        "conviction": 0.65
+    },
+    {
+        "rule_number": 27,
+        "antecedents": ["Novel", "Language and literature"],
+        "consequent": "Medicine",
+        "support": 182,
+        "confidence": 0.87,
+        "lift": 1.1,
+        "leverage": 0.02,
+        "conviction": 1.52
+    },
+    {
+        "rule_number": 28,
+        "antecedents": ["ï»¿Philosophy Psychology", "Social Science"],
+        "consequent": "Science",
+        "support": 148,
+        "confidence": 0.87,
+        "lift": 0.94,
+        "leverage": -0.01,
+        "conviction": 0.59
+    },
+    {
+        "rule_number": 29,
+        "antecedents": ["Novel", "General Medicine, Health Professions"],
+        "consequent": "Science",
+        "support": 112,
+        "confidence": 0.86,
+        "lift": 0.94,
+        "leverage": -0.01,
+        "conviction": 0.57
+    },
+    {
+        "rule_number": 30,
+        "antecedents": ["Novel", "Language and literature", "Science"],
+        "consequent": "Medicine",
+        "support": 167,
+        "confidence": 0.86,
+        "lift": 1.08,
+        "leverage": 0.01,
+        "conviction": 1.42
+    }
+]

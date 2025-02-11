@@ -1,0 +1,293 @@
+[
+    {
+      "rule_number": 1,
+      "antecedents": ["Technology", "Language and literature", "Social Science"],
+      "consequent": "Science",
+      "support": 192,
+      "confidence": 0.95,
+      "lift": 1.05,
+      "leverage": 0.01,
+      "conviction": 1.73
+    },
+    {
+      "rule_number": 2,
+      "antecedents": ["Technology", "Social Science"],
+      "consequent": "Science",
+      "support": 338,
+      "confidence": 0.92,
+      "lift": 1.01,
+      "leverage": 0,
+      "conviction": 1.12
+    },
+    {
+      "rule_number": 3,
+      "antecedents": ["Technology", "Language and literature"],
+      "consequent": "Science",
+      "support": 483,
+      "confidence": 0.92,
+      "lift": 1.01,
+      "leverage": 0.01,
+      "conviction": 1.1
+    },
+    {
+      "rule_number": 4,
+      "antecedents": ["Language and literature"],
+      "consequent": "Science",
+      "support": 613,
+      "confidence": 0.91,
+      "lift": 1,
+      "leverage": 0,
+      "conviction": 1.01
+    },
+    {
+      "rule_number": 5,
+      "antecedents": ["Social Science"],
+      "consequent": "Science",
+      "support": 462,
+      "confidence": 0.91,
+      "lift": 1,
+      "leverage": 0,
+      "conviction": 0.98
+    },
+    {
+      "rule_number": 6,
+      "antecedents": ["Geography, Anthropology"],
+      "consequent": "Technology",
+      "support": 248,
+      "confidence": 0.91,
+      "lift": 1.13,
+      "leverage": 0.03,
+      "conviction": 2.05
+    },
+    {
+      "rule_number": 7,
+      "antecedents": ["Language and literature", "Social Science"],
+      "consequent": "Science",
+      "support": 266,
+      "confidence": 0.9,
+      "lift": 1,
+      "leverage": 0,
+      "conviction": 0.95
+    },
+    {
+      "rule_number": 8,
+      "antecedents": ["Technology"],
+      "consequent": "Science",
+      "support": 729,
+      "confidence": 0.9,
+      "lift": 1,
+      "leverage": 0,
+      "conviction": 0.97
+    },
+    {
+      "rule_number": 9,
+      "antecedents": ["Novel", "Geography, Anthropology"],
+      "consequent": "Technology",
+      "support": 123,
+      "confidence": 0.9,
+      "lift": 1.13,
+      "leverage": 0.01,
+      "conviction": 1.96
+    },
+    {
+      "rule_number": 10,
+      "antecedents": ["Technology", "Novel", "Social Science"],
+      "consequent": "Science",
+      "support": 167,
+      "confidence": 0.9,
+      "lift": 1,
+      "leverage": 0,
+      "conviction": 0.92
+    },
+    {
+      "rule_number": 11,
+      "antecedents": ["Language and literature", "Geography, Anthropology"],
+      "consequent": "Technology",
+      "support": 146,
+      "confidence": 0.9,
+      "lift": 1.12,
+      "leverage": 0.02,
+      "conviction": 1.83
+    },
+    {
+      "rule_number": 12,
+      "antecedents": ["Philosophy Psychology", "Technology", "Language and literature"],
+      "consequent": "Science",
+      "support": 183,
+      "confidence": 0.89,
+      "lift": 0.99,
+      "leverage": 0,
+      "conviction": 0.84
+    },
+    {
+      "rule_number": 13,
+      "antecedents": ["Language and literature", "Geography, Anthropology"],
+      "consequent": "Science",
+      "support": 145,
+      "confidence": 0.89,
+      "lift": 0.98,
+      "leverage": 0,
+      "conviction": 0.81
+    },
+    {
+      "rule_number": 14,
+      "antecedents": ["Geography, Anthropology", "Science"],
+      "consequent": "Technology",
+      "support": 207,
+      "confidence": 0.89,
+      "lift": 1.11,
+      "leverage": 0.02,
+      "conviction": 1.74
+    },
+    {
+      "rule_number": 15,
+      "antecedents": ["Novel", "Social Science"],
+      "consequent": "Science",
+      "support": 238,
+      "confidence": 0.89,
+      "lift": 0.98,
+      "leverage": 0,
+      "conviction": 0.81
+    },
+    {
+      "rule_number": 16,
+      "antecedents": ["Language and literature", "Geography, Anthropology", "Science"],
+      "consequent": "Technology",
+      "support": 128,
+      "confidence": 0.88,
+      "lift": 1.11,
+      "leverage": 0.01,
+      "conviction": 1.63
+    },
+    {
+      "rule_number": 17,
+      "antecedents": ["Novel", "Language and literature", "Social Science"],
+      "consequent": "Science",
+      "support": 109,
+      "confidence": 0.88,
+      "lift": 0.97,
+      "leverage": 0,
+      "conviction": 0.73
+    },
+    {
+      "rule_number": 18,
+      "antecedents": ["Novel"],
+      "consequent": "Science",
+      "support": 552,
+      "confidence": 0.88,
+      "lift": 0.97,
+      "leverage": -0.02,
+      "conviction": 0.76
+    },
+    {
+      "rule_number": 19,
+      "antecedents": ["Technology", "Language and literature", "Geography, Anthropology"],
+      "consequent": "Science",
+      "support": 128,
+      "confidence": 0.88,
+      "lift": 0.97,
+      "leverage": 0,
+      "conviction": 0.72
+    },
+    {
+      "rule_number": 20,
+      "antecedents": ["Philosophy Psychology", "Language and literature"],
+      "consequent": "Science",
+      "support": 276,
+      "confidence": 0.87,
+      "lift": 0.96,
+      "leverage": -0.01,
+      "conviction": 0.72
+    },
+    {
+      "rule_number": 21,
+      "antecedents": ["Philosophy Psychology", "Technology", "Social Science"],
+      "consequent": "Science",
+      "support": 142,
+      "confidence": 0.87,
+      "lift": 0.96,
+      "leverage": -0.01,
+      "conviction": 0.7
+    },
+    {
+      "rule_number": 22,
+      "antecedents": ["Novel", "Language and literature"],
+      "consequent": "Science",
+      "support": 331,
+      "confidence": 0.87,
+      "lift": 0.96,
+      "leverage": -0.01,
+      "conviction": 0.71
+    },
+    {
+      "rule_number": 23,
+      "antecedents": ["Philosophy Psychology"],
+      "consequent": "Science",
+      "support": 450,
+      "confidence": 0.87,
+      "lift": 0.96,
+      "leverage": -0.02,
+      "conviction": 0.72
+    },
+    {
+      "rule_number": 24,
+      "antecedents": ["Technology", "Novel", "Language and literature"],
+      "consequent": "Science",
+      "support": 245,
+      "confidence": 0.87,
+      "lift": 0.96,
+      "leverage": -0.01,
+      "conviction": 0.7
+    },
+    {
+      "rule_number": 25,
+      "antecedents": ["Philosophy Psychology", "Technology"],
+      "consequent": "Science",
+      "support": 319,
+      "confidence": 0.87,
+      "lift": 0.96,
+      "leverage": -0.01,
+      "conviction": 0.69
+    },
+    {
+      "rule_number": 26,
+      "antecedents": ["Technology", "Novel"],
+      "consequent": "Science",
+      "support": 422,
+      "confidence": 0.87,
+      "lift": 0.96,
+      "leverage": -0.02,
+      "conviction": 0.69
+    },
+    {
+      "rule_number": 27,
+      "antecedents": ["Philosophy Psychology", "Novel", "Social Science"],
+      "consequent": "Science",
+      "support": 128,
+      "confidence": 0.86,
+      "lift": 0.95,
+      "leverage": -0.01,
+      "conviction": 0.64
+    },
+    {
+      "rule_number": 28,
+      "antecedents": ["Philosophy Psychology", "Social Science"],
+      "consequent": "Science",
+      "support": 232,
+      "confidence": 0.86,
+      "lift": 0.94,
+      "leverage": -0.01,
+      "conviction": 0.64
+    },
+    {
+      "rule_number": 29,
+      "antecedents": ["Geography, Anthropology"],
+      "consequent": "Science",
+      "support": 233,
+      "confidence": 0.85,
+      "lift": 0.94,
+      "leverage": -0.02,
+      "conviction": 0.61
+    }
+  ]
+  

@@ -1,0 +1,232 @@
+[
+    {
+        "rule_number": 1,
+        "antecedents": ["Law", "Political Science"],
+        "consequent": "Social Science",
+        "support": 1384,
+        "confidence": 0.94,
+        "lift": 1.09,
+        "leverage": 0.03,
+        "conviction": 2.3
+    },
+    {
+        "rule_number": 2,
+        "antecedents": ["Law", "Language and literature", "Political Science"],
+        "consequent": "Social Science",
+        "support": 705,
+        "confidence": 0.93,
+        "lift": 1.08,
+        "leverage": 0.01,
+        "conviction": 2
+    },
+    {
+        "rule_number": 3,
+        "antecedents": ["Law", "World History", "Political Science"],
+        "consequent": "Social Science",
+        "support": 679,
+        "confidence": 0.92,
+        "lift": 1.07,
+        "leverage": 0.01,
+        "conviction": 1.75
+    },
+    {
+        "rule_number": 4,
+        "antecedents": ["Law"],
+        "consequent": "Social Science",
+        "support": 1710,
+        "confidence": 0.92,
+        "lift": 1.07,
+        "leverage": 0.02,
+        "conviction": 1.73
+    },
+    {
+        "rule_number": 5,
+        "antecedents": ["Law", "Psychology", "Political Science"],
+        "consequent": "Social Science",
+        "support": 509,
+        "confidence": 0.91,
+        "lift": 1.06,
+        "leverage": 0.01,
+        "conviction": 1.59
+    },
+    {
+        "rule_number": 6,
+        "antecedents": ["Political Science"],
+        "consequent": "Social Science",
+        "support": 2291,
+        "confidence": 0.91,
+        "lift": 1.06,
+        "leverage": 0.03,
+        "conviction": 1.6
+    },
+    {
+        "rule_number": 7,
+        "antecedents": ["Law", "Novel"],
+        "consequent": "Social Science",
+        "support": 637,
+        "confidence": 0.9,
+        "lift": 1.05,
+        "leverage": 0.01,
+        "conviction": 1.43
+    },
+    {
+        "rule_number": 8,
+        "antecedents": ["Psychology", "Novel", "Geography, Anthropology"],
+        "consequent": "Language and literature",
+        "support": 486,
+        "confidence": 0.9,
+        "lift": 1.3,
+        "leverage": 0.02,
+        "conviction": 3.07
+    },
+    {
+        "rule_number": 9,
+        "antecedents": ["World History", "Political Science"],
+        "consequent": "Social Science",
+        "support": 1455,
+        "confidence": 0.9,
+        "lift": 1.05,
+        "leverage": 0.01,
+        "conviction": 1.37
+    },
+    {
+        "rule_number": 10,
+        "antecedents": ["Law", "Language and literature"],
+        "consequent": "Social Science",
+        "support": 899,
+        "confidence": 0.89,
+        "lift": 1.04,
+        "leverage": 0.01,
+        "conviction": 1.31
+    },
+    {
+        "rule_number": 11,
+        "antecedents": ["Psychology", "World History", "Political Science"],
+        "consequent": "Social Science",
+        "support": 619,
+        "confidence": 0.89,
+        "lift": 1.04,
+        "leverage": 0,
+        "conviction": 1.28
+    },
+    {
+        "rule_number": 12,
+        "antecedents": ["Technology"],
+        "consequent": "Social Science",
+        "support": 627,
+        "confidence": 0.89,
+        "lift": 1.03,
+        "leverage": 0,
+        "conviction": 1.24
+    },
+    {
+        "rule_number": 13,
+        "antecedents": ["Psychology", "Political Science"],
+        "consequent": "Social Science",
+        "support": 959,
+        "confidence": 0.89,
+        "lift": 1.03,
+        "leverage": 0.01,
+        "conviction": 1.24
+    },
+    {
+        "rule_number": 14,
+        "antecedents": ["Law", "World History"],
+        "consequent": "Social Science",
+        "support": 839,
+        "confidence": 0.88,
+        "lift": 1.03,
+        "leverage": 0.01,
+        "conviction": 1.22
+    },
+    {
+        "rule_number": 15,
+        "antecedents": ["Law", "Psychology"],
+        "consequent": "Social Science",
+        "support": 666,
+        "confidence": 0.88,
+        "lift": 1.03,
+        "leverage": 0,
+        "conviction": 1.2
+    },
+    {
+        "rule_number": 16,
+        "antecedents": ["Language and literature", "Political Science"],
+        "consequent": "Social Science",
+        "support": 1263,
+        "confidence": 0.88,
+        "lift": 1.03,
+        "leverage": 0.01,
+        "conviction": 1.21
+    },
+    {
+        "rule_number": 17,
+        "antecedents": ["World History", "Language and literature", "Political Science"],
+        "consequent": "Social Science",
+        "support": 786,
+        "confidence": 0.86,
+        "lift": 1.01,
+        "leverage": 0,
+        "conviction": 1.04
+    },
+    {
+        "rule_number": 18,
+        "antecedents": ["Psychology", "Language and literature", "Political Science"],
+        "consequent": "Social Science",
+        "support": 599,
+        "confidence": 0.86,
+        "lift": 1.01,
+        "leverage": 0,
+        "conviction": 1.04
+    },
+    {
+        "rule_number": 19,
+        "antecedents": ["Novel", "Political Science"],
+        "consequent": "Social Science",
+        "support": 892,
+        "confidence": 0.86,
+        "lift": 1,
+        "leverage": 0,
+        "conviction": 1.02
+    },
+    {
+        "rule_number": 20,
+        "antecedents": ["Psychology", "Language and literature", "Geography, Anthropology", "Social Science"],
+        "consequent": "World History",
+        "support": 485,
+        "confidence": 0.86,
+        "lift": 1.28,
+        "leverage": 0.02,
+        "conviction": 2.31
+    },
+    {
+        "rule_number": 21,
+        "antecedents": ["Psychology", "Geography, Anthropology", "Social Science"],
+        "consequent": "World History",
+        "support": 570,
+        "confidence": 0.85,
+        "lift": 1.27,
+        "leverage": 0.03,
+        "conviction": 2.23
+    },
+    {
+        "rule_number": 22,
+        "antecedents": ["Psychology", "Novel", "World History"],
+        "consequent": "Language and literature",
+        "support": 739,
+        "confidence": 0.85,
+        "lift": 1.23,
+        "leverage": 0.03,
+        "conviction": 2.1
+    },
+    {
+        "rule_number": 23,
+        "antecedents": ["Psychology", "World History", "Geography, Anthropology", "Social Science"],
+        "consequent": "Language and literature",
+        "support": 485,
+        "confidence": 0.85,
+        "lift": 1.23,
+        "leverage": 0.02,
+        "conviction": 2.04
+    }
+]
