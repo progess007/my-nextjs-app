@@ -81,7 +81,7 @@ export async function POST(request) {
         // logger: true, // Log รายละเอียดของ SMTP
     });
 
-    const verificationLink = `http://localhost:3000/auth/verify?token=${token}`; // ลิงก์ยืนยัน
+    const verificationLink = `https://ubuscitech.vercel.app/auth/verify?token=${token}`; // ลิงก์ยืนยัน
     const mailOptions = {
         from: 'ubu.recommend@gmail.com',
         to: Reg_email,
