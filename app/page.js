@@ -159,13 +159,17 @@ export default function Home() {
 
         {/* Bottom Buttons */}
         <div className="absolute bottom-8 left-0 w-full flex flex-col items-center space-y-4">
-          <button className="px-6 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center space-x-2">
+          <button 
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center space-x-2"
+            onClick={() => handleOpenModalWithStep(6)}
+          >
             <span>Sign Up</span>
             <FaUserPlus />
           </button>
+          
           <button
-            className="px-6 py-3 bg-gray-100 text-gray-900 rounded-md hover:bg-gray-200 flex items-center space-x-2"
-            onClick={() => setIsMenuOpen(false)}
+            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 flex items-center space-x-2"
+            onClick={() => handleOpenModalWithStep(1)}
           >
             <span>Login</span>
             <FaSignInAlt />
@@ -247,7 +251,7 @@ export default function Home() {
               <Link href={`/books/${book.rc_bo_pid}`}>
                 {/* สมมติว่ามี field รูปภาพหนังสือ item.rc_bo_cover */}
                 <div key={index} className="w-full text-center group">
-                  <div className="relative w-full aspect-[3/4] overflow-hidden rounded shadow-md bg-gray-100">
+                  <div className="relative w-full aspect-[3/4] overflow-hidden rounded shadow-md bg-gray-200">
                       {book.imageUrl ? (
                       <img
                         src={book.imageUrl}
@@ -258,8 +262,12 @@ export default function Home() {
                       />
                       ) : (
                       // ถ้าไม่มีรูป ก็แสดง placeholder
-                      <div className="w-full h-full flex items-center justify-center text-gray-500">
-                        NO IMAGE AVAILABLE
+                      // <div className="w-full h-full flex items-center justify-center text-gray-500">
+                      //   NO IMAGE AVAILABLE
+                      // </div>
+
+                      <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
+                        <FaBook className="text-gray-400" size={40} />
                       </div>
                       )}
                       <div

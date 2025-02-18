@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import ParallaxTilt from 'react-parallax-tilt';
 import { FiSearch } from 'react-icons/fi';
+import { FaBook} from 'react-icons/fa';
 
 export default function SearchBar() {
 
@@ -216,11 +217,18 @@ export default function SearchBar() {
                         >
                           <Link href={`/books/${item.rc_bo_pid}`}>
                             {/* สมมติว่ามี field รูปภาพหนังสือ item.rc_bo_cover */}
-                            <img
-                              src={item.rc_bo_cover || '/default-cover.jpg'}
-                              alt={item.rc_bo_title}
-                              className="w-32 h-40 object-cover rounded-md mb-2"
-                            />
+                            {item.rc_bo_des_img ? (
+                              <img
+                                src={item.rc_bo_des_img || '/default-cover.jpg'}
+                                alt={item.rc_bo_des_img}
+                                className="w-32 h-40 object-cover rounded-md mb-2"
+                              />
+
+                            ) : (
+                              <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
+                                <FaBook className="text-gray-400" size={40} />
+                              </div>
+                            )}
                             <p className="text-gray-700 font-medium text-center">
                               {item.rc_bo_title}
                             </p>

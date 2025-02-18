@@ -1,12 +1,18 @@
 import BookRecommendations from "../components/BookRecommendations";
 import { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMoneyBillWave, faWallet, faCreditCard, faUniversity, faUndo } from '@fortawesome/free-solid-svg-icons';
-import { motion } from "framer-motion"; // ตัวอย่าง react animation
+import { 
+  faChalkboardTeacher,  // สำหรับ Faculty (คณะ)
+  faBuilding,           // สำหรับ Department (สาขา)
+  faBook,               // สำหรับ หมวดหมู่หนังสือที่ชอบ 1
+  faBookOpen,           // สำหรับ หมวดหมู่หนังสือที่ชอบ 2
+  faBookmark,           // สำหรับ หมวดหมู่หนังสือที่ชอบ 3
+  faChevronDown
+} from '@fortawesome/free-solid-svg-icons';
+import { motion } from "framer-motion"; // ใช้สำหรับ animation แบบ 3D
 import Swal from "sweetalert2";
 
-const HomeContent = ({userID}) => { 
-
+const HomeContent = ({ userID }) => { 
   // 🔹 State สำหรับ Profile และ Modal
   const [showModal, setShowModal] = useState(false);
   const [profiles, setProfiles] = useState([]);
@@ -27,6 +33,18 @@ const HomeContent = ({userID}) => {
   const [userProfile, setUserProfile] = useState(null);
   const [matchCount, setMatchCount] = useState(0);
 
+  // 🔹 State สำหรับ Accordion (สำหรับ mobile)
+  const [showAssociation, setShowAssociation] = useState(true);
+  const [showProfile, setShowProfile] = useState(true);
+
+  // ตั้งค่า accordion ให้ปิดใน mobile (หน้าจอ < 640px)
+  useEffect(() => {
+    if (window.innerWidth < 640) {
+      setShowAssociation(false);
+      setShowProfile(false);
+    }
+  }, []);
+
   useEffect(() => {
     const userIDValue = typeof userID === 'object' ? userID.toString() : userID;
     console.log('UserID:', userIDValue);
@@ -45,7 +63,7 @@ const HomeContent = ({userID}) => {
         setProfiles(data);
         setUserProfile(data);
         if (data.length === 0) {
-          // ถ้าไม่มี profile เลย ให้เปิด modal ทันที
+          // ถ้าไม่มี profile ให้เปิด modal ทันที
           Swal.fire({
             title: 'กรุณาสร้างโปรไฟล์ก่อน',
             html: `
@@ -61,14 +79,14 @@ const HomeContent = ({userID}) => {
             if(result.isConfirmed) {
               setShowModal(true);
             }
-          })
+          });
         } else {
-          // หา revision สูงสุด
+          // หา revision ที่สูงที่สุด
           const sorted = [...data].sort(
             (a, b) => b.rc_ac_us_pr_revision - a.rc_ac_us_pr_revision
           );
-          setLatestProfile(sorted[0]); // เก็บไว้ใช้แสดงบนหน้า
-          setShowModal(false); // มีโปรไฟล์แล้ว จบงาน ไม่ต้องเปิด modal
+          setLatestProfile(sorted[0]); // เก็บไว้แสดงบนหน้า
+          setShowModal(false); // มีโปรไฟล์แล้ว ไม่ต้องเปิด modal
         }
       }
     } catch (err) {
@@ -76,7 +94,7 @@ const HomeContent = ({userID}) => {
     }
   };
 
-  // เรียก fetchProfileData ทันทีที่เปิดหน้า (render ครั้งแรก) 
+  // เรียก fetchProfileData เมื่อ userID พร้อมใช้งาน
   useEffect(() => {
     if (userID) {
       fetchProfileData();
@@ -116,14 +134,13 @@ const HomeContent = ({userID}) => {
       const { success, data } = await res.json();
 
       if (success) {
-        // ตรวจสอบข้อมูลซ้ำ (duplicate) ก่อนเก็บลง state
-        const seen = new Set();         // เก็บ pid ที่เคยเจอ
-        const uniqueItems = [];         // เก็บ item ที่ไม่ซ้ำ
-        const duplicateItems = [];      // เก็บ item ที่ซ้ำ
+        // ตรวจสอบข้อมูลซ้ำก่อนเก็บ
+        const seen = new Set();
+        const uniqueItems = [];
+        const duplicateItems = [];
 
         data.forEach((item) => {
           if (seen.has(item.rc_bo_cat_pid)) {
-            // ถ้ามี pid ใน Set แล้วแปลว่าซ้ำ
             duplicateItems.push(item);
           } else {
             seen.add(item.rc_bo_cat_pid);
@@ -138,8 +155,6 @@ const HomeContent = ({userID}) => {
             icon: "warning",
           });
         }
-
-        // set เฉพาะ uniqueItems (ไม่ซ้ำ) ลง state
         setCategoryList(uniqueItems);
       }
     } catch (err) {
@@ -147,7 +162,7 @@ const HomeContent = ({userID}) => {
     }
   };
 
-  // เมื่อกด faculty dropdown
+  // เมื่อกดเลือก Faculty
   const handleFacultyChange = (e) => {
     const value = e.target.value;
     setFaculty(value);
@@ -155,7 +170,7 @@ const HomeContent = ({userID}) => {
     setDepartmentList([]);
     fetchDepartments(value);
     fetchCategories(value);
-    // reset p1, p2, p3
+    // reset หมวดหมู่
     setP1("");
     setP2("");
     setP3("");
@@ -163,53 +178,40 @@ const HomeContent = ({userID}) => {
 
   // ส่งข้อมูลไปยัง API เพื่อ insert profile (revision +1)
   const handleSaveProfile = async () => {
-    // 1) เช็คว่ากรอกข้อมูล Faculty และ Department หรือยัง
     if (!faculty || !department) {
       Swal.fire("กรุณากรอกข้อมูลให้ครบ", "", "warning");
       return;
     }
 
-    // 2) เช็คว่ามีการเลือกหมวดหมู่ซ้ำกันหรือเปล่า
-    //    ถ้า p1, p2, p3 ใด ๆ ซ้ำกันให้แจ้งเตือนและไม่บันทึก
     if (p1 === p2 || p1 === p3 || p2 === p3 || p3 === p2) {
       Swal.fire("พบการเลือกหมวดหมู่ซ้ำกัน", "กรุณาเลือกหมวดหมู่ที่ไม่ซ้ำกัน", "warning");
       return;
     }
 
-    // เช็คว่าข้อมูลที่จะบันทึกซ้ำกับข้อมูลล่าสุดหรือไม่
-    if (latestProfile && faculty === latestProfile.rc_ac_us_pr_fac_pid && department === latestProfile.rc_ac_us_pr_dep_pid && p1 === latestProfile.rc_ac_us_pr_p1 && p2 === latestProfile.rc_ac_us_pr_p2 && p3 === latestProfile.rc_ac_us_pr_p3) {
+    if (latestProfile &&
+        faculty === latestProfile.rc_ac_us_pr_fac_pid &&
+        department === latestProfile.rc_ac_us_pr_dep_pid &&
+        p1 === latestProfile.rc_ac_us_pr_p1 &&
+        p2 === latestProfile.rc_ac_us_pr_p2 &&
+        p3 === latestProfile.rc_ac_us_pr_p3) {
       Swal.fire("ข้อมูลไม่มีการเปลี่ยนแปลง", "ข้อมูลที่คุณพยายามบันทึกซ้ำกับข้อมูลล่าสุด", "info");
       return;
     }
 
-    console.log("Before fetch => p1, p2, p3 =", p1, p2, p3);
-
     try {
-      const bodyData = {
-        userID,
-        faculty,
-        department,
-        p1,
-        p2,
-        p3,
-      };
+      const bodyData = { userID, faculty, department, p1, p2, p3 };
       
       const res = await fetch("/api/user-profiles/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(bodyData),
       });
-      // const { success, message } = await res.json();
-
-      const data = await res.json(); // data = { success: boolean, message: string, ... }
-      console.log("API response =>", data); // Debug
+      const data = await res.json();
 
       if(!data.success) {
-        // ถ้า success = false ให้แสดง error
         Swal.fire("เกิดข้อผิดพลาด", data.message, "error");
         return;
       }
-      // เรียก fetchProfileData ใหม่ เพื่ออัปเดต latestProfile และ profiles
       Swal.fire("บันทึกสำเร็จ", data.message, "success");
       await fetchProfileData();
       
@@ -219,21 +221,17 @@ const HomeContent = ({userID}) => {
     }
   };
 
-  // เรียกข้อมูล faculty ทันทีที่โหลดหน้า
+  // ดึงข้อมูล faculty เมื่อโหลดหน้า
   useEffect(() => {
     fetchFaculties();
   }, []);
 
-  // ปุ่มเปิด Modal เพื่อแก้ไขหรือสร้าง profile ใหม่
+  // เปิด Modal สำหรับแก้ไข/สร้าง profile
   const openEditModal = () => {
     setShowModal(true);
-
-    // ถ้ามี latestProfile อยู่ ให้ใส่ค่าเดิมลงในฟอร์ม
-    // สมมติเราต้องการ "แก้ไข" แล้วบันทึกเป็น Revision ใหม่
     if (latestProfile) {
       setFaculty(latestProfile.rc_ac_us_pr_fac_pid || "");
       setDepartment(latestProfile.rc_ac_us_pr_dep_pid || "");
-      // โหลด department list กับ category list ใหม่ด้วย fac เดิม
       if (latestProfile.rc_ac_us_pr_fac_pid) {
         fetchDepartments(latestProfile.rc_ac_us_pr_fac_pid);
         fetchCategories(latestProfile.rc_ac_us_pr_fac_pid);
@@ -242,8 +240,6 @@ const HomeContent = ({userID}) => {
       setP2(latestProfile.rc_ac_us_pr_p2 || "");
       setP3(latestProfile.rc_ac_us_pr_p3 || "");
     } else {
-      // ถ้าไม่มี latestProfile (ไม่มีข้อมูล profile เลย)
-      // ก็ clear form ให้เป็นค่าว่าง
       setFaculty("");
       setDepartment("");
       setDepartmentList([]);
@@ -253,9 +249,6 @@ const HomeContent = ({userID}) => {
       setP3("");
     }
   };
-
-  // ========================================================================
-  // ========================================================================
 
   const translations = {
       "กฎหมาย": "Law",
@@ -286,9 +279,9 @@ const HomeContent = ({userID}) => {
 
   useEffect(() => {
     if (profiles && profiles.length > 0) {
-        queryRecommendations(profiles); // เรียกใช้ queryRecommendations ทันทีเมื่อ userProfile เปลี่ยน
+        queryRecommendations(profiles);
     }
-  }, [profiles]); // userProfile เป็น dependency
+  }, [profiles]);
 
   async function queryRecommendations(profile) {
     const groupMapping = {
@@ -321,9 +314,8 @@ const HomeContent = ({userID}) => {
     const translatedCategories = translateCategories(categories);
     console.log("Translated Categories:", translatedCategories);
 
-    let totalMatches = 0; // Track the total number of matched rules
+    let totalMatches = 0;
 
-    // Query for 3 matches
     let result = await fetchQuery(translatedCategories, 3, groupAssoPid);
     if (result && result.length > 0) {
         totalMatches += result.length;
@@ -332,7 +324,6 @@ const HomeContent = ({userID}) => {
         return;
     }
 
-    // Query for 2 matches (different combinations)
     const pairs = [
         [translatedCategories[0], translatedCategories[1]],
         [translatedCategories[1], translatedCategories[2]],
@@ -349,7 +340,6 @@ const HomeContent = ({userID}) => {
         }
     }
 
-    // Query for 1 match
     for (const category of translatedCategories) {
         result = await fetchQuery([category], 1, groupAssoPid);
         if (result && result.length > 0) {
@@ -364,91 +354,90 @@ const HomeContent = ({userID}) => {
     setRecommendations([]);
   }
 
-    async function fetchQuery(categories, matchCount, groupAssoPid) {
-        let query = "";
-        if (matchCount === 3) {
-            query = `SELECT * FROM rc_association_json
+  async function fetchQuery(categories, matchCount, groupAssoPid) {
+    let query = "";
+    if (matchCount === 3) {
+      query = `SELECT * FROM rc_association_json
                 WHERE JSON_CONTAINS(JSON_EXTRACT(rc_as_js_rule, '$.antecedents'), '${JSON.stringify(categories)}')
                 AND rc_as_js_GroupAsso_pid = ${groupAssoPid};`;
-        } else if (matchCount === 2) {
-            const conditions = categories
-                .map(cat => `JSON_CONTAINS(JSON_EXTRACT(rc_as_js_rule, '$.antecedents'), '"${cat}"')`)
-                .join(' AND ');
-            query = `SELECT * FROM rc_association_json
+    } else if (matchCount === 2) {
+      const conditions = categories
+          .map(cat => `JSON_CONTAINS(JSON_EXTRACT(rc_as_js_rule, '$.antecedents'), '"${cat}"')`)
+          .join(' AND ');
+      query = `SELECT * FROM rc_association_json
                 WHERE ${conditions}
                 AND JSON_LENGTH(JSON_EXTRACT(rc_as_js_rule, '$.antecedents')) = 2
                 AND rc_as_js_GroupAsso_pid = ${groupAssoPid};`;
-        } else {
-            query = `SELECT * FROM rc_association_json
+    } else {
+      query = `SELECT * FROM rc_association_json
                 WHERE JSON_CONTAINS(JSON_EXTRACT(rc_as_js_rule, '$.antecedents'), '"${categories[0]}"')
                 AND JSON_LENGTH(JSON_EXTRACT(rc_as_js_rule, '$.antecedents')) = 1
                 AND rc_as_js_GroupAsso_pid = ${groupAssoPid};`;
-        }
-
-        try {
-            // console.log("Executing query:", query);
-            const res = await fetch("/api/association/get-rules", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ query }),
-            });
-
-            if (!res.ok) {
-                const errorText = await res.text();
-                console.error("API error:", errorText);
-                return null;
-            }
-
-            const json = await res.json();
-            // console.log("Fetched Recommendations:", json);
-            return json;
-        } catch (err) {
-            console.error("Error fetching query:", err);
-            return null;
-        }
     }
 
-    function processRecommendations(recommendations) {
-        return recommendations.map(item => ({
-            ...item,
-            rc_as_js_rule: item.rc_as_js_rule ? JSON.parse(item.rc_as_js_rule) : null,
-        }));
-    }
+    try {
+      const res = await fetch("/api/association/get-rules", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ query }),
+      });
 
-    const cardProfiles = [
+      if (!res.ok) {
+          const errorText = await res.text();
+          console.error("API error:", errorText);
+          return null;
+      }
+
+      const json = await res.json();
+      return json;
+    } catch (err) {
+      console.error("Error fetching query:", err);
+      return null;
+    }
+  }
+
+  function processRecommendations(recommendations) {
+      return recommendations.map(item => ({
+          ...item,
+          rc_as_js_rule: item.rc_as_js_rule ? JSON.parse(item.rc_as_js_rule) : null,
+      }));
+  }
+
+  // ปรับปรุง cardProfiles โดยใช้ไอคอนที่เหมาะสม
+  const cardProfiles = [
     { 
-      icon:faMoneyBillWave, title: "Faculty (คณะ)", 
+      icon: faChalkboardTeacher, title: "Faculty (คณะ)", 
       subtitle: latestProfile?.rc_fac_name ?? 'ไม่มีข้อมูล',
       dataID: latestProfile?.rc_ac_us_pr_fac_pid ?? 'Null',
       color: "bg-green-500" 
     },
     { 
-      icon:faWallet, title: "Department (สาขา)", 
+      icon: faBuilding, title: "Department (สาขา)", 
       subtitle: latestProfile?.rc_dep_name ?? 'ไม่มีข้อมูล', 
       dataID: latestProfile?.rc_ac_us_pr_dep_pid ?? 'Null',
       color: "bg-teal-500" 
     },
     { 
-      icon:faCreditCard, title: "หมวดหมู่หนังสือที่ชอบ 1", 
+      icon: faBook, title: "หมวดหมู่หนังสือที่ชอบ 1", 
       subtitle: latestProfile?.category1 ?? 'ไม่มีข้อมูล', 
       dataID: latestProfile?.rc_ac_us_pr_p1 ?? 'Null',
       color: "bg-red-500" 
     },
     { 
-      icon:faUniversity, title: "หมวดหมู่หนังสือที่ชอบ 2", 
+      icon: faBookOpen, title: "หมวดหมู่หนังสือที่ชอบ 2", 
       subtitle: latestProfile?.category2 ?? 'ไม่มีข้อมูล',
       dataID: latestProfile?.rc_ac_us_pr_p2 ?? 'Null',
       color: "bg-blue-500" 
     },
     { 
-      icon:faUndo, title: "หมวดหมู่หนังสือที่ชอบ 3", 
+      icon: faBookmark, title: "หมวดหมู่หนังสือที่ชอบ 3", 
       subtitle: latestProfile?.category3 ?? 'ไม่มีข้อมูล',
       dataID: latestProfile?.rc_ac_us_pr_p3 ?? 'Null',
       color: "bg-gray-500" 
     },    
-  ]
+  ];
 
   const groupLabels = {
     1: "วิทยาศาสตร์ทั่วไป",
@@ -456,60 +445,134 @@ const HomeContent = ({userID}) => {
     3: "สังคมศาสตร์ และ มนุษยศาสตร์"
   };
 
-    return (
-        <>
-        <div className='flex flex-col md:flex-row justify-between items-center mx-4 md:mx-6 bg-gray-100 text-white p-4'>
-          <div>
-            <p className="text-2xl md:text-4xl font-semibold text-purple-600">User Dashboard</p>
-          </div>
-          <div className='text-black mt-2 md:mt-0'>
-            <a href="#" className="no-underline hover:text-gray-300">หน้าแรก </a>
-            <span className="mx-2">/</span>
-          </div>
+  return (
+    <>
+      {/* Header / Breadcrumb */}
+      <div className='flex flex-col md:flex-row justify-between items-center mx-4 md:mx-6 bg-gray-100 text-white p-4'>
+        <div>
+          <p className="text-xl sm:text-2xl md:text-4xl font-semibold text-purple-600">
+            User Dashboard
+          </p>
         </div>
+        <div className='text-black mt-2 md:mt-0'>
+          <a href="#" className="no-underline hover:text-gray-300 text-sm md:text-base">
+            หน้าแรก
+          </a>
+          <span className="mx-2 text-sm md:text-base">/</span>
+        </div>
+      </div>
 
-        <div className="mx-4 md:mx-6 mt-4 text-black">
-          <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-4">  {/* Responsive grid */}
-            
-            <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-4">
-              <div className="mx-2 my-2 bg-white shadow-md rounded-lg shadow-lg p-6 flex flex-col justify-between">
-                <h3 className="text-2xl font-bold mb-4 text-black">ข้อมูล กฎความสัมพันธ์ (Association Rule)</h3>
+      {/* Grid Layout สำหรับ Card ทั้ง 2 (Association Rules & User Profiles) */}
+      <div className="mx-4 md:mx-6 mt-4 text-black">
+        <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Accordion Card: Association Rules */}
+          <div className="mx-2 my-2 bg-white shadow-md rounded-lg p-6">
+            <div 
+              className="flex justify-between items-center cursor-pointer"
+              onClick={() => setShowAssociation(!showAssociation)}
+            >
+              <h3 className="text-xl sm:text-2xl font-bold mb-4 text-black">
+                ข้อมูล กฎความสัมพันธ์ (Association Rule)
+              </h3>
+              <FontAwesomeIcon 
+                icon={faChevronDown} 
+                className={`transform transition-transform duration-300 ${showAssociation ? 'rotate-180' : 'rotate-0'}`} 
+              />
+            </div>
+            <div style={{ perspective: 1000 }}>
+              <motion.div
+                initial={false}
+                animate={showAssociation ? "open" : "collapsed"}
+                variants={{
+                  open: { opacity: 1, height: "auto", rotateX: 0 },
+                  collapsed: { opacity: 0, height: 0, rotateX: -15 },
+                }}
+                transition={{ duration: 0.5, ease: [0.04, 0.62, 0.23, 0.98] }}
+                style={{ overflow: "hidden" }}
+              >
                 <ul className="grid grid-cols-1 gap-4">
-                        {recommendations.map((rec, index) => (
-                            <li
-                                key={index}
-                                className="p-4 border rounded shadow-lg transform transition-transform duration-300 hover:scale-105">
-                                <h3 className="text-xl font-semibold mb-2">Group ID: {rec.rc_as_js_GroupAsso_pid}</h3>
-                                <p>Rule Number: {rec.rc_as_js_rule?.rule_number || "N/A"}</p>
-                                <p>Antecedents (ความสัมพันธ์ ): {rec.rc_as_js_rule?.antecedents ? translateToThai(rec.rc_as_js_rule.antecedents).join(", ") : "N/A"}</p>
-                                <p>Consequent (ผลที่ตามมา): {rec.rc_as_js_rule?.consequent ? translateToThai([rec.rc_as_js_rule.consequent]).join(", ") : "N/A"}</p>
-                                <p>Support: {rec.rc_as_js_rule?.support || "N/A"}</p>
-                                <p>Confidence: {rec.rc_as_js_rule?.confidence || "N/A"}</p>
-                            </li>
-                        ))}
-                        {recommendations.length === 0 && <p>No matching recommendations found.</p>}
-                    </ul>
+                  {recommendations.map((rec, index) => (
+                    <li
+                      key={index}
+                      className="p-4 border rounded shadow-lg transform transition-transform duration-300 hover:scale-105"
+                    >
+                      <h3 className="text-lg sm:text-xl font-semibold mb-2">
+                        Group ID: {rec.rc_as_js_GroupAsso_pid}
+                      </h3>
+                      <p className="text-sm mb-1">
+                        Rule Number: {rec.rc_as_js_rule?.rule_number || "N/A"}
+                      </p>
+                      <p className="text-sm mb-1">
+                        Antecedents (ความสัมพันธ์ ):{" "}
+                        {rec.rc_as_js_rule?.antecedents 
+                          ? translateToThai(rec.rc_as_js_rule.antecedents).join(", ") 
+                          : "N/A"}
+                      </p>
+                      <p className="text-sm mb-1">
+                        Consequent (ผลที่ตามมา):{" "}
+                        {rec.rc_as_js_rule?.consequent 
+                          ? translateToThai([rec.rc_as_js_rule.consequent]).join(", ") 
+                          : "N/A"}
+                      </p>
+                      <p className="text-sm">
+                        Support: {rec.rc_as_js_rule?.support || "N/A"}
+                      </p>
+                      <p className="text-sm">
+                        Confidence: {rec.rc_as_js_rule?.confidence || "N/A"}
+                      </p>
+                    </li>
+                  ))}
+                  {recommendations.length === 0 && (
+                    <p className="text-sm">No matching recommendations found.</p>
+                  )}
+                </ul>
 
-                <hr className="my-4" />  {/* เส้นขีดแบ่ง */}
+                <hr className="my-4" />
 
                 <div className="flex justify-between items-center">
-                  <p className="text-black font-semibold py-2 px-4 rounded text-lg">
-                    กลุ่มความสัมพันธ์ : <span className="text-purple-600"> 
-                      {recommendations.length > 0 ? groupLabels[recommendations[0].rc_as_js_GroupAsso_pid] : "ไม่ระบุ"}
+                  <p className="text-sm font-semibold py-2 px-4 rounded">
+                    กลุ่มความสัมพันธ์ :{" "}
+                    <span className="text-purple-600">
+                      {recommendations.length > 0 
+                        ? groupLabels[recommendations[0].rc_as_js_GroupAsso_pid] 
+                        : "ไม่ระบุ"
+                      }
                     </span>
                   </p>
-                  <p className="text-black font-semibold py-2 px-4 rounded text-lg">
-                    กฎความสัมพันธ์ที่จับคู่ได้ทั้งหมด : <span className="text-purple-600">  
-                      {matchCount}
-                    </span>
+                  <p className="text-sm font-semibold py-2 px-4 rounded">
+                    กฎความสัมพันธ์ที่จับคู่ได้ทั้งหมด :{" "}
+                    <span className="text-purple-600">{matchCount}</span>
                   </p>
                 </div>
-
-              </div>
+              </motion.div>
             </div>
-            
-              <div className="mx-2 my-2 bg-white shadow-md rounded-lg shadow-lg p-6 flex flex-col justify-between">
-                <h3 className="text-2xl font-bold mb-4 text-black">ข้อมูล โปรไฟล์ผู้ใช้ (User Profiles)</h3>
+          </div>
+
+          {/* Accordion Card: User Profiles */}
+          <div className="mx-2 my-2 bg-white shadow-md rounded-lg p-6">
+            <div 
+              className="flex justify-between items-center cursor-pointer"
+              onClick={() => setShowProfile(!showProfile)}
+            >
+              <h3 className="text-xl sm:text-2xl font-bold mb-4 text-black">
+                ข้อมูล โปรไฟล์ผู้ใช้ (User Profiles)
+              </h3>
+              <FontAwesomeIcon 
+                icon={faChevronDown} 
+                className={`transform transition-transform duration-300 ${showProfile ? 'rotate-180' : 'rotate-0'}`} 
+              />
+            </div>
+            <div style={{ perspective: 1000 }}>
+              <motion.div
+                initial={false}
+                animate={showProfile ? "open" : "collapsed"}
+                variants={{
+                  open: { opacity: 1, height: "auto", rotateX: 0 },
+                  collapsed: { opacity: 0, height: 0, rotateX: -15 },
+                }}
+                transition={{ duration: 0.5, ease: [0.04, 0.62, 0.23, 0.98] }}
+                style={{ overflow: "hidden" }}
+              >
                 <ul>
                   {cardProfiles.map((card, index) => (
                     <li key={index} className="flex items-center justify-between my-3">
@@ -518,45 +581,46 @@ const HomeContent = ({userID}) => {
                           <FontAwesomeIcon icon={card.icon} className="w-7 h-5" />
                         </div>
                         <div className="ml-5">
-                          <p className="text-sm font-semibold text-black">{card.title}</p>
-                          <p className="text-xs text-gray-500">{card.subtitle}</p>
+                          <p className="text-sm md:text-base font-semibold text-black">
+                            {card.title}
+                          </p>
+                          <p className="text-xs sm:text-sm text-gray-500">
+                            {card.subtitle}
+                          </p>
                         </div>
                       </div>
-                      {/* <span className={`${transaction.amount.startsWith('+') ? 'text-green-500' : 'text-red-500'} font-semibold text-lg`}> */}
-                        {/* {transaction.amount} */}
-                      {/* </span> */}
-                      <span >
+                      <span className="text-xs sm:text-sm">
                         dataID : {card.dataID}
                       </span>
                     </li>
                   ))}
                 </ul>
 
-                <hr className="my-4" />  {/* เส้นขีดแบ่ง */}
+                <hr className="my-4" />
 
                 <div className="flex justify-between items-center">
                   <button
                     onClick={openEditModal}
-                    className="bg-blue-500 text-white font-semibold py-2 px-4 rounded hover:bg-blue-600 text-sm">
+                    className="bg-blue-500 text-white font-semibold py-2 px-4 rounded hover:bg-blue-600 text-sm"
+                  >
                     แก้ไขข้มูล Profiles
                   </button>
-                  <p className="text-xs text-gray-500">Profiles Revision : 
+                  <p className="text-xs sm:text-sm text-gray-500">
+                    Profiles Revision : 
                     <span className='text-purple-600'> {latestProfile?.rc_ac_us_pr_revision ?? 'ไม่มีข้อมูล'} </span>
                   </p>
                 </div>
-
-              </div>
+              </motion.div>
+            </div>
           </div>
         </div>
+      </div>
 
-        <BookRecommendations bookRec={{ bookRule: recommendations, bookProfiles: profiles}} />
+      {/* ส่วนแสดง Book Recommendations */}
+      <BookRecommendations bookRec={{ bookRule: recommendations, bookProfiles: profiles }} />
 
-      {/* ----------------------------------------------
-        ส่วนจัดการ Profile (นอกเหนือจาก Sidebar/Main)
-      ---------------------------------------------- */}
+      {/* Modal สำหรับจัดการ Profile */}
       <main className="p-4">
-
-        {/* Modal (ใช้ framer-motion เพื่อโชว์ตัวอย่าง animation) */}
         {showModal && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <motion.div
@@ -572,9 +636,9 @@ const HomeContent = ({userID}) => {
               <div className="flex flex-col gap-4 text-black">
                 {/* Faculty */}
                 <div>
-                  <label className="block mb-1">Faculty (คณะ)</label>
+                  <label className="block mb-1 text-sm">Faculty (คณะ)</label>
                   <select
-                    className="border p-2 w-full"
+                    className="border p-2 w-full text-sm"
                     value={faculty}
                     onChange={handleFacultyChange}
                   >
@@ -589,9 +653,9 @@ const HomeContent = ({userID}) => {
 
                 {/* Department */}
                 <div>
-                  <label className="block mb-1">Department (สาขา)</label>
+                  <label className="block mb-1 text-sm">Department (สาขา)</label>
                   <select
-                    className="border p-2 w-full"
+                    className="border p-2 w-full text-sm"
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
                     disabled={!faculty}
@@ -607,9 +671,9 @@ const HomeContent = ({userID}) => {
 
                 {/* Category 1 */}
                 <div>
-                  <label className="block mb-1">หมวดหมู่หนังสือที่ชอบ 1</label>
+                  <label className="block mb-1 text-sm">หมวดหมู่หนังสือที่ชอบ 1</label>
                   <select
-                    className="border p-2 w-full"
+                    className="border p-2 w-full text-sm"
                     value={p1}
                     onChange={(e) => setP1(e.target.value)}
                     disabled={!faculty}
@@ -625,9 +689,9 @@ const HomeContent = ({userID}) => {
 
                 {/* Category 2 */}
                 <div>
-                  <label className="block mb-1">หมวดหมู่หนังสือที่ชอบ 2</label>
+                  <label className="block mb-1 text-sm">หมวดหมู่หนังสือที่ชอบ 2</label>
                   <select
-                    className="border p-2 w-full"
+                    className="border p-2 w-full text-sm"
                     value={p2}
                     onChange={(e) => setP2(e.target.value)}
                     disabled={!faculty}
@@ -643,9 +707,9 @@ const HomeContent = ({userID}) => {
 
                 {/* Category 3 */}
                 <div>
-                  <label className="block mb-1">หมวดหมู่หนังสือที่ชอบ 3</label>
+                  <label className="block mb-1 text-sm">หมวดหมู่หนังสือที่ชอบ 3</label>
                   <select
-                    className="border p-2 w-full"
+                    className="border p-2 w-full text-sm"
                     value={p3}
                     onChange={(e) => setP3(e.target.value)}
                     disabled={!faculty}
@@ -662,17 +726,14 @@ const HomeContent = ({userID}) => {
                 {/* ปุ่มบันทึก / ปิด */}
                 <div className="flex gap-2 mt-4">
                   <button
-                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 text-sm"
                     onClick={handleSaveProfile}
                   >
                     บันทึก
                   </button>
-
-                  {/* เงื่อนไข: มี latestProfile แล้ว ถึงจะให้ปิด modal ได้ 
-                      (หรือจะให้ปิด modal ได้เลยก็แล้วแต่ requirement) */}
                   {latestProfile && (
                     <button
-                      className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                      className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 text-sm"
                       onClick={() => setShowModal(false)}
                     >
                       ปิด
@@ -683,30 +744,9 @@ const HomeContent = ({userID}) => {
             </motion.div>
           </div>
         )}
-      </main>                      
-        
-      </>
-    );        
-  }
+      </main>
+    </>
+  );
+};
 
 export default HomeContent;
-
-    // useEffect(() => {
-    //     async function fetchUserProfile() {
-    //         if (!userID) return;  // ตรวจสอบว่ามี userID หรือไม่
-    //         else console.log(`UserID = ${userID}`)
-
-    //         try {
-    //             const res = await fetch(`/api/association/user-profile?userID=${userID}`);
-    //             const data = await res.json();
-    //             setUserProfile(data);
-    //             // if (data) {
-    //             //     queryRecommendations(data);
-    //             // }
-    //         } catch (err) {
-    //             console.error("Error fetching user profile:", err);
-    //         }
-    //     }
-
-    //     fetchUserProfile();
-    // }, [userID]); // เพิ่ม userID เป็น dependency

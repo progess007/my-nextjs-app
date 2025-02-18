@@ -15,20 +15,21 @@ const UserDashboard = () => {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [userID, setUserID] = useState(null);
-  const [currentPage, setCurrentPage] = useState('home'); // เก็บค่าหน้าปัจจุบัน
+  const [currentPage, setCurrentPage] = useState('home'); // หน้าปัจจุบัน
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const date = moment().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm:ss');
 
   // ฟังก์ชันสำหรับเรนเดอร์เนื้อหาใน main
   const renderContent = () => {
     switch (currentPage) {
       case 'home':
-        return <HomeContent userID={userID}/>;
+        return <HomeContent userID={userID} />;
       case 'search':
         return <BookSearch />;
       case 'favorites':
         return <Favorites />;
       default:
-        return <HomeContent userID={userID}/>;
+        return <HomeContent userID={userID} />;
     }
   };
 
@@ -39,38 +40,55 @@ const UserDashboard = () => {
         Swal.fire("Error", userProfile.message, "error");
         router.push('/');
       } else {
-        setUser(userProfile.user); // ตั้งค่าผู้ใช้ 
+        setUser(userProfile.user);
         setUserID(userProfile.user.rc_ac_pid);
       }
     };
     loadUser();
   }, [router]);
 
-  // ============================================================================
+  // ตรวจสอบขนาดหน้าจอเพื่อกำหนดสถานะ Sidebar เริ่มต้น
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(prev => !prev);
+  };
 
   if (!user) {
-    return (
-      <>
-        <p>กำลังโหลดข้อมูล...</p>
-      </>
-    )
+    return <p>กำลังโหลดข้อมูล...</p>;
   }
 
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
-      <Sidebar user={user} setCurrentPage={setCurrentPage} />
+      <Sidebar 
+        user={user} 
+        setCurrentPage={setCurrentPage} 
+        currentPage={currentPage} 
+        isSidebarOpen={isSidebarOpen} 
+      />
 
       <div className="flex-1 flex flex-col">
-        {/* Navbar or Header */}
-        <Header user={user} />
+        {/* Header */}
+        <Header user={user} toggleSidebar={toggleSidebar} />
 
-        {/* Render Content */}
-        <div className="flex-1 p-5 bg-gray-100">
+        {/* เนื้อหาหลัก */}
+        <div className="flex-1 bg-gray-100">
           {renderContent()}
         </div>
 
-        {/* Footer Content */}
+        {/* Footer */}
         <footer className="py-8 bg-gray-800 text-white text-center">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <p className="text-sm">
@@ -79,8 +97,6 @@ const UserDashboard = () => {
           </div>
         </footer>
       </div>
-
-      
     </div>
   );
 };

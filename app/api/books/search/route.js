@@ -23,7 +23,8 @@ export async function GET(request) {
         d.rc_bo_des_collection_name,
         d.rc_bo_des_author_name,
         d.rc_bo_des_mattype_name,
-        d.rc_bo_des_location
+        d.rc_bo_des_location,
+        d.rc_bo_des_img
       FROM 
         rc_book_stock AS s
       JOIN 
