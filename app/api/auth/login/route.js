@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { db } from "@/utils/db";
+import { format } from "date-fns";
+import { zonedTimeToUtc, formatInTimeZone } from "date-fns-tz";
 
 const SECRET_KEY = process.env.SECRET_KEY;
 
@@ -54,20 +56,14 @@ export async function POST(req) {
       return NextResponse.json({ message: "Invalid step" }, { status: 400 });
     }
 
-      const token = jwt.sign(
-        { id: user.rc_ac_pid, role: user.rc_ac_permissions },
-        SECRET_KEY,
-        { expiresIn: "7d" } // อายุ 7 วัน
-      );
+    const token = jwt.sign(
+      { id: user.rc_ac_pid, role: user.rc_ac_permissions },
+      SECRET_KEY,
+      { expiresIn: "7d" } // อายุ 7 วัน
+    );
 
-      // console.log("JWT Token Created asdasd:", token);
-      const decoded = jwt.verify(token, SECRET_KEY);
-      // console.log("Decode token", decoded)
-      // console.log("User Data:", user.rc_ac_pid); // ดูข้อมูลผู้ใช้จากฐานข้อมูล
-      // console.log("SECRET_KEY:", SECRET_KEY); // ตรวจสอบค่าว่า SECRET_KEY มีอยู่หรือไม่
-      // console.log("Sent Token in Authorization Header:", req.headers.get("authorization"));
+    const decoded = jwt.verify(token, SECRET_KEY);
 
-    // กำหนด redirectURL ตาม rc_ac_permissions
     let redirectURL;
 
     if (user.rc_ac_permissions === 1) {
@@ -80,6 +76,14 @@ export async function POST(req) {
         { status: 403 } // Forbidden
       );
     }
+
+    // บันทึกข้อมูลลงในตาราง rc_log_login
+    const timeZone = "Asia/Bangkok";
+    const loginDate = formatInTimeZone(new Date(), timeZone, "yyyy-MM-dd HH:mm:ss");
+    await db.query(
+      "INSERT INTO rc_log_login (rc_log_login_date, rc_ac_pid) VALUES (?, ?)",
+      [loginDate, user.rc_ac_pid]
+    );
 
     return NextResponse.json({
       message: "เข้าสู่ระบบสำเร็จ",
