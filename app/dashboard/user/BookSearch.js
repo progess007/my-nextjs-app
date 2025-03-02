@@ -1,24 +1,13 @@
+'use client';
+import React from 'react';
+
 const BookSearch = () => {
-
-    return (
-        <>
-        <div className='flex justify-between items-center p-5 bg-gray-100 text-white'>
-          <div>
-            <p className="text-4xl font-semibold text-purple-600">ค้นหาหนังสือ</p>
-          </div>
-          <div className='text-black'>
-            <a href="/dashboard/user" className="no-underline hover:text-gray-300">หน้าแรก</a>
-            <span className="mx-2">/</span>
-            <a href="#" className="no-underline hover:text-gray-300">ค้นหาหนังสือ</a>
-          </div>
-        </div>
-
-            <h2 className="text-black text-2xl">
-                BookSearch Page
-            </h2>
-        </>
-    );
-
+  return (
+    <div className="p-8">
+      <h2 className="text-2xl font-bold text-black">ค้นหาหนังสือ</h2>
+      <p className="text-gray-600">ฟังก์ชันค้นหาหนังสือยังไม่ถูกพัฒนา</p>
+    </div>
+  );
 };
 
-export default BookSearch
+export default BookSearch;

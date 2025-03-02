@@ -1,108 +1,590 @@
-'use client';
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { FaHeart, FaThumbsDown, FaInfoCircle, FaStar, FaBalanceScale, FaPercentage, FaExclamationCircle } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import Swal from "sweetalert2";
 
-import { useState, useEffect } from "react";
+// Helper: แปลงเวลาปัจจุบันให้เป็น "YYYY-MM-DD HH:mm:ss" ตาม timezone Asia/Bangkok
+const getCurrentBangkokTime = () => {
+  const now = new Date();
+  const bangkokTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "Asia/Bangkok" })
+  );
+  const year = bangkokTime.getFullYear();
+  const month = String(bangkokTime.getMonth() + 1).padStart(2, "0");
+  const day = String(bangkokTime.getDate()).padStart(2, "0");
+  const hours = String(bangkokTime.getHours()).padStart(2, "0");
+  const minutes = String(bangkokTime.getMinutes()).padStart(2, "0");
+  const seconds = String(bangkokTime.getSeconds()).padStart(2, "0");
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
 
-const BookRecommendations = ({bookRec}) => {
+const BookRecommendations = ({ bookRec }) => {
+  // bookRec ควรมี keys: bookRule, bookProfiles, userProfileData
+  const { userProfileData } = bookRec;
   
-  const books = [
-    { title: 'Soul', author: 'Olivia Wilson', image: '/cover.jpg' },
-    { title: 'Memory', author: 'Angelina Aludo', image: '/cover.jpg' },
-    { title: 'My Book Cover', author: 'Author Name', image: '/cover.jpg' },
-    { title: 'A Million to One', author: 'Tony Faggioli', image: '/cover.jpg' },
-    { title: 'My Book Cover', author: 'Author Name', image: '/cover.jpg' },
-    { title: 'My Book Cover', author: 'Author Name', image: '/cover.jpg' },
-    { title: 'My Book Cover', author: 'Author Name', image: '/cover.jpg' },
-    { title: 'My Book Cover', author: 'Author Name', image: '/cover.jpg' },
-    { title: 'My Book Cover', author: 'Author Name', image: '/cover.jpg' },
-    { title: 'My Book Cover', author: 'Author Name', image: '/cover.jpg' },
-  ];
+  // State สำหรับ API query
+  const [catID, setCatID] = useState(null); // ได้จาก /api/recommendation/get-category-pid
+  const [algoBooks, setAlgoBooks] = useState([]); // ผลลัพธ์จาก /api/recommendation/get-books
+  const [bookDetails, setBookDetails] = useState([]); // รายละเอียดหนังสือจาก /api/recommendation/get-book-details
+  const [algoError, setAlgoError] = useState(null);
+  
+  // State สำหรับ modal popup
+  const [selectedBook, setSelectedBook] = useState(null);
+  const [modalType, setModalType] = useState("full"); // "info" หรือ "full"
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // State สำหรับ icon actions
+  const [favorites, setFavorites] = useState([]);
+  const [dislikes, setDislikes] = useState([]);
+  
+  // State สำหรับ activeTab ใน modal full detail
+  const [activeTab, setActiveTab] = useState("Card");
 
-  // 🔹 ดึงค่า props ที่ส่งมาจาก HomeContent
-  const Rules = bookRec.bookRule;
-  const Profiles = bookRec.bookProfiles;
-
-  // 🔹 เก็บตัวแปรที่จะนำไปหาค่า category
-  const consequent = Rules?.[0]?.rc_as_js_rule?.consequent || "No Data";
-  const groupID = Rules?.[0]?.rc_as_js_GroupAsso_pid || "No Data"; 
-
-  const facID = Profiles?.[0]?.rc_ac_us_pr_fac_pid || "No Data";
-  const depID = Profiles?.[0]?.rc_ac_us_pr_dep_pid || "No Data";
-
-  const [categoryPID, setCategoryPID] = useState(null);
-
-  const translations = {
-    "กฎหมาย": "Law", "เกษตรศาสตร์": "Agriculture", "จิตวิทยา": "Psychology",
-    "เทคโนโลยี": "Technology", "นิยาย": "Novel", "ประวัติศาสตร์โลก": "World History",
-    "แพทย์ศาสตร์ทั่วไป, วิชาชีพด้านสุขภาพ": "General Medicine, Health Professions",
-    "ภาษาศาสตร์ และ วรรณกรรม": "Language and literature",
-    "ภูมิศาสตร์ มานุษยวิทยา": "Geography, Anthropology",
-    "ยา": "Medicine", "วิทยาศาสตร์": "Science", "รัฐศาสตร์": "Political Science",
-    "สังคมศาสตร์": "Social Science",
-  };
-
-  // หา key ที่ตรงกับค่าภาษาอังกฤษใน translations (แปลงค่าเป็นภาษาไทย)
-  const translatedConsequent = Object.keys(translations).find(
-    key => translations[key] === consequent
-  ) || "ไม่พบคำแปล"; // ถ้าไม่มีคำแปลให้แสดงข้อความนี้
+  // ===============================
+  // Query catID จาก API /api/recommendation/get-category-pid
+  // ===============================
+  const fetchCategoryID = useCallback(async () => {
+    if (!userProfileData || !userProfileData.groupID || !userProfileData.consequent) return;
+    try {
+      const res = await fetch("/api/recommendation/get-category-pid", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          translatedConsequent: userProfileData.consequent,
+          groupID: userProfileData.groupID,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.rc_bo_cat_pid) {
+        setCatID(data.rc_bo_cat_pid);
+      } else {
+        setCatID(null);
+      }
+    } catch (error) {
+      console.error("Error fetching category ID:", error);
+      setCatID(null);
+    }
+  }, [userProfileData]);
 
   useEffect(() => {
-    const fetchCategoryPID = async () => {
-      try {
-        const res = await fetch("/api/recommendation/get-category-pid", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ translatedConsequent, groupID }),
-        });
-    
-        const data = await res.json();
-    
-        if (res.ok && data.rc_bo_cat_pid) {
-          setCategoryPID(data.rc_bo_cat_pid);
-        } else {
-          console.warn("ไม่พบข้อมูลในฐานข้อมูล");
-          setCategoryPID("ไม่พบข้อมูล");
-        }
-      } catch (error) {
-        console.error("Fetch error:", error);
-        setCategoryPID("Error");
+    fetchCategoryID();
+  }, [fetchCategoryID]);
+
+  // ===============================
+  // Query algorithm books จาก API /api/recommendation/get-books
+  // ===============================
+  const fetchAlgorithmBooks = useCallback(async () => {
+    if (!userProfileData || !catID) return;
+    try {
+      const params = new URLSearchParams({
+        groupID: userProfileData.groupID,
+        facID: userProfileData.faculty,
+        depID: userProfileData.department,
+        catID: catID,
+        favID_1: userProfileData.fav1,
+        favID_2: userProfileData.fav2,
+        favID_3: userProfileData.fav3,
+      });
+      const res = await fetch(`/api/recommendation/get-books?${params.toString()}`);
+      const data = await res.json();
+      if (res.ok && !data.error && data.length >= 10) {
+        setAlgoBooks(data);
+        setAlgoError(null);
+      } else {
+        setAlgoError("ไม่สามารถแนะนำหนังสือได้");
+        setAlgoBooks([]);
       }
-    };
-
-    if (translatedConsequent && groupID) {
-      fetchCategoryPID();
+    } catch (error) {
+      console.error("Error fetching algorithm books:", error);
+      setAlgoError("ไม่สามารถแนะนำหนังสือได้");
+      setAlgoBooks([]);
     }
-  }, [translatedConsequent, groupID]);
+  }, [catID, userProfileData]);
 
-  const catID = categoryPID || "No data";
+  useEffect(() => {
+    fetchAlgorithmBooks();
+  }, [fetchAlgorithmBooks]);
 
-  // console.log(translatedConsequent);
-  console.log(groupID + " " + consequent + " facID: " + facID + " depID: " + depID);
-  console.log(catID);
+  // ===============================
+  // Query รายละเอียดหนังสือจาก API /api/recommendation/get-book-details
+  // ===============================
+  const fetchBookDetails = useCallback(async () => {
+    if (algoBooks.length === 0) return;
+    const ids = algoBooks.map((book) => book.pid).join(",");
+    try {
+      const res = await fetch(`/api/recommendation/get-book-details?ids=${ids}`);
+      if (!res.ok) throw new Error("Error fetching book details");
+      const details = await res.json();
+      setBookDetails(details);
+    } catch (error) {
+      console.error("Error fetching book details:", error);
+      setBookDetails([]);
+    }
+  }, [algoBooks]);
 
-  return(
-    <>
-        <section className="flex-1 p-8">
-          {/* <h2 className="text-black">{book.name}</h2> */}
-          <h2 className="text-2xl font-bold mb-6 text-black">แนะนำหนังสือ {catID}</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            {books.map((book, index) => (
-              <div
-                key={index}
-                className="bg-white p-4 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"
-              >
-                <img
-                  src={book.image}
-                  alt={book.title}
-                  className="h-40 w-full object-cover rounded-md mb-4"
-                />
-                <h3 className="text-lg font-semibold">{book.title}</h3>
-                <p className="text-sm text-gray-500">by {book.author}</p>
+  useEffect(() => {
+    fetchBookDetails();
+  }, [fetchBookDetails]);
+
+  // ===============================
+  // Combine algorithm books กับรายละเอียดหนังสือ
+  // ===============================
+  const combinedBooks = useMemo(() => {
+    return bookDetails.map((detail) => {
+      const algoBook = algoBooks.find((b) => b.pid === detail.rc_bo_pid);
+      return { ...detail, rating: algoBook?.rating, weight: algoBook?.weight, probability: algoBook?.probability };
+    });
+  }, [bookDetails, algoBooks]);
+
+  const sortedCombinedBooks = useMemo(() => {
+    return combinedBooks.sort((a, b) => {
+      const ratingDiff = Number(b.rating) - Number(a.rating);
+      if (ratingDiff !== 0) return ratingDiff;
+      const weightDiff = Number(b.weight) - Number(a.weight);
+      if (weightDiff !== 0) return weightDiff;
+      return Number(b.probability) - Number(a.probability);
+    });
+  }, [combinedBooks]);
+
+  // ===============================
+  // ฟังก์ชันบันทึก log เมื่อคลิกการ์ด (clickstream)
+  // ===============================
+  const logClick = async (bo_pid, rating) => {
+    if (!userProfileData || !userProfileData.userID) return;
+    const clickDate = getCurrentBangkokTime();
+    const logData = {
+      rc_log_cli_click: 1,
+      rc_log_cli_date_click: clickDate,
+      rc_log_ac_pid: userProfileData.userID,
+      rc_log_bo_pid: bo_pid,
+      rc_log_bo_rating: rating,
+    };
+    try {
+      const res = await fetch("/api/log/clickstream", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(logData),
+      });
+      if (res.ok) {
+        console.log("Click log success");
+      } else {
+        console.error("Click log failed", res);
+      }
+    } catch (error) {
+      console.error("Error logging click:", error);
+    }
+  };
+
+  // ===============================
+  // Modal Handling
+  // ===============================
+  const openModal = (book, type) => {
+    // หากเปิด modal แบบ full detail ให้บันทึก log click
+    if (type === "full") {
+      logClick(book.rc_bo_pid, book.rating);
+    }
+    setSelectedBook(book);
+    setModalType(type);
+    if (type === "full") setActiveTab("Card");
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedBook(null);
+  };
+
+  // ===============================
+  // Icon Toggle Handlers พร้อม SweetAlert Confirmation
+  // ===============================
+  const toggleFavorite = async (e, pid) => {
+    e.stopPropagation();
+    if (favorites.includes(pid)) {
+      // ถ้าอยู่ใน favorites แล้ว ให้ถามยืนยันนำออก
+      const result = await Swal.fire({
+        title: "คุณต้องการนำหนังสือออกจากรายการโปรดหรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "ใช่, นำออก",
+        cancelButtonText: "ยกเลิก",
+      });
+      if (result.isConfirmed) {
+        try {
+          const res = await fetch("/api/log/favorite", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              rc_log_fav_ac_pid: userProfileData.userID,
+              rc_log_fav_bo_pid: pid,
+              rc_log_fav_book: 1, // สำหรับ favorite removal
+            }),
+          });
+          const data = await res.json();
+          if (res.ok) {
+            Swal.fire("นำออกจากรายการโปรดแล้ว", "", "success");
+            setFavorites((prev) => prev.filter((id) => id !== pid));
+            // รีเฟรชข้อมูลแนะนำหนังสือ
+            fetchAlgorithmBooks();
+          } else {
+            Swal.fire("เกิดข้อผิดพลาด", data.error || "", "error");
+          }
+        } catch (error) {
+          console.error("Error removing favorite:", error);
+          Swal.fire("เกิดข้อผิดพลาด", "", "error");
+        }
+      }
+    } else {
+      // ไม่อยู่ใน favorites ให้ถามยืนยันเพิ่ม
+      const result = await Swal.fire({
+        title: "คุณต้องการเพิ่มหนังสือเข้ารายการโปรดหรือไม่?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "ใช่, เพิ่มเข้ารายการโปรด",
+        cancelButtonText: "ยกเลิก",
+      });
+      if (result.isConfirmed) {
+        const favData = {
+          rc_log_fav_book: 1, // 1 = favorite
+          rc_log_fav_date: getCurrentBangkokTime(),
+          rc_log_fav_ac_pid: userProfileData.userID,
+          rc_log_fav_bo_pid: pid,
+          rc_log_fav_bo_rating: algoBooks.find(b => b.pid === pid)?.rating,
+        };
+        try {
+          const res = await fetch("/api/log/favorite", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(favData),
+          });
+          const data = await res.json();
+          if (res.ok) {
+            Swal.fire("เพิ่มเข้ารายการโปรดแล้ว", "", "success");
+            setFavorites((prev) => [...prev, pid]);
+            // นำหนังสือออกจากการแนะนำ
+            const updatedAlgoBooks = algoBooks.filter((book) => book.pid !== pid);
+            setAlgoBooks(updatedAlgoBooks);
+            fetchAlgorithmBooks();
+          } else {
+            Swal.fire("เกิดข้อผิดพลาด", data.error || "", "error");
+          }
+        } catch (error) {
+          console.error("Error logging favorite:", error);
+          Swal.fire("เกิดข้อผิดพลาด", "", "error");
+        }
+      }
+    }
+  };
+
+  const toggleDislike = async (e, pid) => {
+    e.stopPropagation();
+    if (dislikes.includes(pid)) {
+      const result = await Swal.fire({
+        title: "คุณต้องการนำ dislike ออกหรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "ใช่, ลบ dislike",
+        cancelButtonText: "ยกเลิก",
+      });
+      if (result.isConfirmed) {
+        try {
+          const res = await fetch("/api/log/favorite", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              rc_log_fav_ac_pid: userProfileData.userID,
+              rc_log_fav_bo_pid: pid,
+              rc_log_fav_book: 0, // 0 = dislike removal
+            }),
+          });
+          const data = await res.json();
+          if (res.ok) {
+            Swal.fire("นำ dislike ออกแล้ว", "", "success");
+            setDislikes((prev) => prev.filter((id) => id !== pid));
+            fetchAlgorithmBooks();
+          } else {
+            Swal.fire("เกิดข้อผิดพลาด", data.error || "", "error");
+          }
+        } catch (error) {
+          console.error("Error removing dislike:", error);
+          Swal.fire("เกิดข้อผิดพลาด", "", "error");
+        }
+      }
+    } else {
+      const result = await Swal.fire({
+        title: "คุณต้องการให้หนังสือนี้ถูก marked as dislike หรือไม่?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "ใช่, dislike",
+        cancelButtonText: "ยกเลิก",
+      });
+      if (result.isConfirmed) {
+        const dislikeData = {
+          rc_log_fav_book: 0, // 0 = dislike
+          rc_log_fav_date: getCurrentBangkokTime(),
+          rc_log_fav_ac_pid: userProfileData.userID,
+          rc_log_fav_bo_pid: pid,
+          rc_log_fav_bo_rating: algoBooks.find(b => b.pid === pid)?.rating,
+        };
+        try {
+          const res = await fetch("/api/log/favorite", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(dislikeData),
+          });
+          const data = await res.json();
+          if (res.ok) {
+            Swal.fire("Dislike บันทึกแล้ว", "", "success");
+            setDislikes((prev) => [...prev, pid]);
+            // เพิ่ม weight ให้กับหนังสือ disliked (เช่น เพิ่ม 20%)
+            const updatedAlgoBooks = algoBooks.map((book) => {
+              if (book.pid === pid) {
+                return { ...book, weight: Number(book.weight) * 1.2 };
+              }
+              return book;
+            });
+            setAlgoBooks(updatedAlgoBooks);
+          } else {
+            Swal.fire("เกิดข้อผิดพลาด", data.error || "", "error");
+          }
+        } catch (error) {
+          console.error("Error logging dislike:", error);
+          Swal.fire("เกิดข้อผิดพลาด", "", "error");
+        }
+      }
+    }
+  };
+
+  // ===============================
+  // Debug Logging
+  // ===============================
+  useEffect(() => {
+    if (userProfileData) {
+      console.log("User Profile Data:", userProfileData);
+      console.log("Group ID:", userProfileData.groupID);
+      console.log("Consequent (Thai):", userProfileData.consequent);
+      console.log("Category ID (from API):", catID);
+      console.log("Algorithm Books:", algoBooks);
+      console.log("Book Details:", bookDetails);
+    }
+  }, [userProfileData, catID, algoBooks, bookDetails]);
+
+  // ===============================
+  // Render UI
+  // ===============================
+  return (
+    <div className="p-8 max-w-6xl mx-auto">
+      <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">
+        Algorithm Book Recommendations
+      </h2>
+
+      {algoError ? (
+        <div className="flex flex-col items-center justify-center text-red-600">
+          <FaExclamationCircle size={40} />
+          <p className="mt-4 text-xl font-semibold">{algoError}</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {sortedCombinedBooks.map((book, index) => (
+            <div
+              key={book.rc_bo_pid}
+              className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 p-4 relative cursor-pointer"
+              onClick={() => openModal(book, "full")}
+            >
+              {/* วงกลมแสดงอันดับ */}
+              <div className="absolute top-2 left-2 w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                {index + 1}
               </div>
-            ))}
-          </div>
-        </section>
-    </>
-  )
-}
+              {/* รูปภาพหนังสือ */}
+              <div className="w-full h-48 overflow-hidden rounded">
+                <img
+                  src={book.rc_bo_des_img || "/placeholder.jpg"}
+                  alt={book.rc_bo_title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              {/* ชื่อหนังสือ */}
+              <h3 className="mt-4 text-xl font-bold text-gray-800">
+                {book.rc_bo_title}
+              </h3>
+              {/* Icon Actions */}
+              <div className="absolute top-4 right-4 flex flex-col space-y-2">
+                <button
+                  onClick={(e) => toggleFavorite(e, book.rc_bo_pid)}
+                  className="p-2 bg-gray-100 rounded-full transition-colors hover:bg-red-200"
+                >
+                  <FaHeart
+                    size={20}
+                    className={
+                      favorites.includes(book.rc_bo_pid)
+                        ? "text-red-500"
+                        : "text-gray-400"
+                    }
+                  />
+                </button>
+                <button
+                  onClick={(e) => toggleDislike(e, book.rc_bo_pid)}
+                  className="p-2 bg-gray-100 rounded-full transition-colors hover:bg-blue-200"
+                >
+                  <FaThumbsDown
+                    size={20}
+                    className={
+                      dislikes.includes(book.rc_bo_pid)
+                        ? "text-blue-500"
+                        : "text-gray-400"
+                    }
+                  />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // ส่งเฉพาะข้อมูลสำหรับ modal info
+                    const infoData = {
+                      rating: book.rating,
+                      weight: book.weight,
+                      probability: book.probability,
+                    };
+                    openModal(infoData, "info");
+                  }}
+                  className="p-2 bg-gray-100 rounded-full transition-colors hover:bg-blue-200"
+                >
+                  <FaInfoCircle size={20} className="text-blue-500" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Modal Popup */}
+      <AnimatePresence>
+        {isModalOpen && selectedBook && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeModal}
+          >
+            <motion.div
+              className="bg-white rounded-lg shadow-lg max-w-3xl w-full p-6 relative"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={closeModal}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                &times;
+              </button>
+              {modalType === "info" ? (
+                <div className="flex flex-col items-center text-black">
+                  <h2 className="text-2xl font-bold mb-4">สรุปข้อมูล</h2>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <FaStar className="text-yellow-500" size={24} />
+                    <span className="font-semibold">Rating:</span>
+                    <span>{selectedBook.rating}</span>
+                  </div>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <FaBalanceScale className="text-green-500" size={24} />
+                    <span className="font-semibold">Weight:</span>
+                    <span>{selectedBook.weight}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <FaPercentage className="text-purple-500" size={24} />
+                    <span className="font-semibold">Probability:</span>
+                    <span>
+                      {selectedBook.probability
+                        ? (selectedBook.probability * 100).toFixed(2) + "%"
+                        : "N/A"}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex flex-col md:flex-row bg-white rounded shadow p-4 mb-6">
+                    {/* ปกหนังสือ */}
+                    <div className="flex-shrink-0">
+                      <img
+                        src={selectedBook.rc_bo_des_img || "/placeholder.jpg"}
+                        alt={selectedBook.rc_bo_title}
+                        className="w-48 h-auto rounded"
+                      />
+                    </div>
+                    {/* ข้อมูลหนังสือ */}
+                    <div className="md:flex-1 text-gray-800 md:pl-6">
+                      <h3 className="text-xl font-semibold mb-2">
+                        {selectedBook.rc_bo_title || "ไม่ระบุชื่อเรื่อง"}
+                      </h3>
+                      <p className="mb-1">
+                        <strong>ผู้แต่ง/ผู้ร่วมแต่ง:</strong>{" "}
+                        {selectedBook.rc_bo_des_author_name || "ไม่ระบุ"}
+                      </p>
+                      <p className="mb-1">
+                        <strong>สถานที่เก็บหนังสือ:</strong>{" "}
+                        {selectedBook.rc_bo_des_location || "ไม่ระบุ"}
+                      </p>
+                      <p className="mb-1">
+                        <strong>เลขเรียก:</strong>{" "}
+                        {selectedBook.rc_bo_call_no || "ไม่ระบุ"}
+                      </p>
+                    </div>
+                  </div>
+                  {/* แถบ Tab */}
+                  <div className="border-b border-gray-300">
+                    <ul className="flex space-x-4 bg-white rounded">
+                      {["Card", "Item", "MARC", "DublinCore", "Review"].map((tab) => (
+                        <li
+                          key={tab}
+                          className={`cursor-pointer py-2 px-4 ${
+                            activeTab === tab
+                              ? "text-green-700 border-b-2 border-green-700 font-semibold"
+                              : "text-gray-700 hover:text-gray-900"
+                          }`}
+                          onClick={() => setActiveTab(tab)}
+                        >
+                          {tab}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="bg-white rounded shadow mt-4">
+                    {activeTab === "Card" && selectedBook && (
+                      <div className="p-4 text-gray-800">
+                        <h3 className="font-semibold mb-2">รายการข้อมูล (Card)</h3>
+                        <table className="min-w-full border text-sm">
+                          <thead>
+                            <tr className="bg-gray-100 text-gray-600 uppercase">
+                              <th className="py-2 px-4 border-b text-left w-1/3">Tag</th>
+                              <th className="py-2 px-4 border-b text-left">Data</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[
+                              { tag: "เลขเรียก", data: selectedBook.rc_bo_call_no || "ไม่ระบุ" },
+                              { tag: "ชื่อเรื่อง", data: selectedBook.rc_bo_title || "ไม่ระบุ" },
+                              { tag: "สถานที่เก็บ", data: selectedBook.rc_bo_des_location || "ไม่ระบุ" },
+                              { tag: "ผู้แต่งร่วม", data: selectedBook.rc_bo_des_author_name || "ไม่ระบุ" },
+                            ].map((item, index) => (
+                              <tr key={index} className="hover:bg-gray-50">
+                                <td className="py-2 px-4 border-b text-gray-800">{item.tag}</td>
+                                <td className="py-2 px-4 border-b text-gray-800">{item.data}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 export default BookRecommendations;

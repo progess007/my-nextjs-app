@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Swal from "sweetalert2";
 import { fetchUserProfile } from '../api/getUserInformation';
 import Header from '../components/Header';
@@ -15,23 +15,23 @@ const UserDashboard = () => {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [userID, setUserID] = useState(null);
-  const [currentPage, setCurrentPage] = useState('home'); // หน้าปัจจุบัน
+  const [currentPage, setCurrentPage] = useState('home');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  
   const date = moment().tz('Asia/Bangkok').format('YYYY-MM-DD HH:mm:ss');
 
-  // ฟังก์ชันสำหรับเรนเดอร์เนื้อหาใน main
-  const renderContent = () => {
+  const renderContent = useCallback(() => {
     switch (currentPage) {
       case 'home':
         return <HomeContent userID={userID} />;
       case 'search':
-        return <BookSearch />;
+        return <BookSearch userID={userID}/>;
       case 'favorites':
-        return <Favorites />;
+        return <Favorites userID={userID}/>;
       default:
         return <HomeContent userID={userID} />;
     }
-  };
+  }, [currentPage, userID]);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -47,14 +47,9 @@ const UserDashboard = () => {
     loadUser();
   }, [router]);
 
-  // ตรวจสอบขนาดหน้าจอเพื่อกำหนดสถานะ Sidebar เริ่มต้น
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 640) {
-        setIsSidebarOpen(false);
-      } else {
-        setIsSidebarOpen(true);
-      }
+      setIsSidebarOpen(window.innerWidth >= 640);
     };
     handleResize();
     window.addEventListener('resize', handleResize);
@@ -66,29 +61,22 @@ const UserDashboard = () => {
   };
 
   if (!user) {
-    return <p>กำลังโหลดข้อมูล...</p>;
+    return <p>Loading...</p>;
   }
 
   return (
     <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar */}
       <Sidebar 
         user={user} 
         setCurrentPage={setCurrentPage} 
         currentPage={currentPage} 
         isSidebarOpen={isSidebarOpen} 
       />
-
       <div className="flex-1 flex flex-col">
-        {/* Header */}
         <Header user={user} toggleSidebar={toggleSidebar} />
-
-        {/* เนื้อหาหลัก */}
         <div className="flex-1 bg-gray-100">
           {renderContent()}
         </div>
-
-        {/* Footer */}
         <footer className="py-8 bg-gray-800 text-white text-center">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <p className="text-sm">

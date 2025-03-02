@@ -1,8 +1,10 @@
+'use client';
 import { FaHome, FaChalkboardTeacher, FaUserGraduate, FaUserCircle, FaCogs, FaSignOutAlt } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import { useRouter } from 'next/navigation';
+import React from 'react';
 
-const Sidebar = ({ user, setCurrentPage, currentPage, isSidebarOpen }) => {
+const Sidebar = React.memo(({ user, setCurrentPage, currentPage, isSidebarOpen }) => {
   const router = useRouter();
 
   const handleLogout = () => {
@@ -17,7 +19,6 @@ const Sidebar = ({ user, setCurrentPage, currentPage, isSidebarOpen }) => {
       cancelButtonText: "ยกเลิก",
     }).then((result) => {
       if (result.isConfirmed) {
-        // ลบ token และนำผู้ใช้กลับไปยังหน้าแรก
         localStorage.removeItem("authToken");
         Swal.fire("ออกจากระบบแล้ว", "คุณได้ออกจากระบบเรียบร้อย", "success").then(() => {
           router.push("/");
@@ -26,7 +27,7 @@ const Sidebar = ({ user, setCurrentPage, currentPage, isSidebarOpen }) => {
     });
   };
 
-  const setting = () => {
+  const handleSetting = () => {
     Swal.fire({
       title: "คุณแน่ใจหรือไม่?",
       text: "คุณต้องการออกจากระบบใช่หรือไม่",
@@ -47,7 +48,7 @@ const Sidebar = ({ user, setCurrentPage, currentPage, isSidebarOpen }) => {
 
   const otherItems = [
     { label: 'Profile', icon: FaUserCircle },
-    { label: 'Settings', icon: FaCogs, action: setting },
+    { label: 'Settings', icon: FaCogs, action: handleSetting },
     { label: 'Logout', icon: FaSignOutAlt, action: handleLogout },
   ];
 
@@ -56,9 +57,9 @@ const Sidebar = ({ user, setCurrentPage, currentPage, isSidebarOpen }) => {
       <div className="flex items-center space-x-3 mb-8">
         <div className="h-16 w-24 bg-indigo-500 text-white rounded-full flex items-center justify-center">
           <img 
-            src='/images/logo.webp'
-            alt='logo'
-            className='h-full w-full object-cover rounded-full'
+            src="/images/logo.webp"
+            alt="logo"
+            className="h-full w-full object-cover rounded-full"
           />
         </div>
         {isSidebarOpen && (
@@ -67,7 +68,6 @@ const Sidebar = ({ user, setCurrentPage, currentPage, isSidebarOpen }) => {
           </h1>
         )}
       </div>
-
       <div className="mb-8">
         {isSidebarOpen && (
           <h2 className="text-gray-500 text-xs font-semibold mb-2">MENU</h2>
@@ -89,7 +89,6 @@ const Sidebar = ({ user, setCurrentPage, currentPage, isSidebarOpen }) => {
           ))}
         </ul>
       </div>
-
       <div>
         {isSidebarOpen && (
           <h2 className="text-gray-500 text-xs font-semibold mb-2">OTHER</h2>
@@ -98,7 +97,7 @@ const Sidebar = ({ user, setCurrentPage, currentPage, isSidebarOpen }) => {
           {otherItems.map((item, index) => (
             <li
               key={index}
-              onClick={item.action || null}
+              onClick={item.action || undefined}
               className="flex items-center space-x-3 text-gray-700 hover:bg-blue-100 hover:text-indigo-500 transition-colors cursor-pointer rounded-lg px-3 py-2"
             >
               <item.icon className={`${isSidebarOpen ? "h-5 w-5" : "h-7 w-7"}`} />
@@ -109,6 +108,7 @@ const Sidebar = ({ user, setCurrentPage, currentPage, isSidebarOpen }) => {
       </div>
     </aside>
   );
-};
+});
 
+Sidebar.displayName = "Sidebar";
 export default Sidebar;
