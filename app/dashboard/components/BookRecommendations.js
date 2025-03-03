@@ -77,6 +77,7 @@ const BookRecommendations = ({ bookRec }) => {
     if (!userProfileData || !catID) return;
     try {
       const params = new URLSearchParams({
+        userID: userProfileData.userID,
         groupID: userProfileData.groupID,
         facID: userProfileData.faculty,
         depID: userProfileData.department,

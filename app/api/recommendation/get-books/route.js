@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { db } from "@/utils/db";
 
+const TOTAL_TARGET = 10; // ต้องการหนังสือ 10 เล่ม
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
+
+  // รับพารามิเตอร์
   const groupID = searchParams.get("groupID");
   const facID = searchParams.get("facID");
   const depID = searchParams.get("depID");
@@ -10,50 +14,59 @@ export async function GET(request) {
   const favID_1 = searchParams.get("favID_1");
   const favID_2 = searchParams.get("favID_2");
   const favID_3 = searchParams.get("favID_3");
-  const userId = searchParams.get("userId"); // ผู้ใช้ที่ทำการแนะนำ
-  const dislikedParam = searchParams.get("dislikedIds"); // comma-separated list of disliked book IDs
-  const dislikedIds = dislikedParam
-    ? dislikedParam.split(",").map((id) => id.trim())
-    : [];
+  // userID สำหรับ exclude favorites
+  let userId = searchParams.get("userId") || searchParams.get("userID");
+  // ถ้าฝั่ง client ไม่ได้ส่ง userId จริง ๆ => userId จะเป็น null => ไม่ exclude
+  if (!userId) {
+    userId = null; // หรือกำหนดเป็น '' ตามสะดวก
+  }
 
-  // ฟังก์ชัน query ตาราง rc_algorithm_book_rating_depart
+  // ฟังก์ชัน query depart
   async function queryDepart(cat) {
     const sql = `
       SELECT rc_alg_bo_groupasso_pid, rc_alg_bo_fac_pid, rc_alg_bo_dep_pid,
              rc_alg_bo_cat_pid, rc_alg_bo_pid, rc_alg_bo_count,
              rc_alg_bo_rating, rc_alg_bo_percentile
       FROM rc_algorithm_book_rating_depart
-      WHERE rc_alg_bo_groupasso_pid = ? 
-        AND rc_alg_bo_fac_pid = ? 
-        AND rc_alg_bo_dep_pid = ? 
+      WHERE rc_alg_bo_groupasso_pid = ?
+        AND rc_alg_bo_fac_pid = ?
+        AND rc_alg_bo_dep_pid = ?
         AND rc_alg_bo_cat_pid = ?
-        AND rc_alg_bo_pid NOT IN (
+        ${userId ? `AND rc_alg_bo_pid NOT IN (
           SELECT rc_log_fav_bo_pid FROM rc_log_favorite WHERE rc_log_fav_ac_pid = ?
-        )
+        )` : ""}
     `;
-    const [rows] = await db.query(sql, [groupID, facID, depID, cat, userId]);
+    const params = [groupID, facID, depID, cat];
+    if (userId) {
+      params.push(userId);
+    }
+    const [rows] = await db.query(sql, params);
     return rows;
   }
 
-  // ฟังก์ชัน query ตาราง rc_algorithm_book_rating_faculty
+  // ฟังก์ชัน query faculty
   async function queryFaculty(cat) {
     const sql = `
       SELECT rc_alg_bo_groupasso_pid, rc_alg_bo_fac_pid,
              rc_alg_bo_cat_pid, rc_alg_bo_pid, rc_alg_bo_count,
              rc_alg_bo_rating, rc_alg_bo_percentile
       FROM rc_algorithm_book_rating_faculty
-      WHERE rc_alg_bo_groupasso_pid = ? 
-        AND rc_alg_bo_fac_pid = ? 
+      WHERE rc_alg_bo_groupasso_pid = ?
+        AND rc_alg_bo_fac_pid = ?
         AND rc_alg_bo_cat_pid = ?
-        AND rc_alg_bo_pid NOT IN (
+        ${userId ? `AND rc_alg_bo_pid NOT IN (
           SELECT rc_log_fav_bo_pid FROM rc_log_favorite WHERE rc_log_fav_ac_pid = ?
-        )
+        )` : ""}
     `;
-    const [rows] = await db.query(sql, [groupID, facID, cat, userId]);
+    const params = [groupID, facID, cat];
+    if (userId) {
+      params.push(userId);
+    }
+    const [rows] = await db.query(sql, params);
     return rows;
   }
 
-  // รวมผลลัพธ์โดยไม่ให้หนังสือซ้ำกัน
+  // รวมไม่ให้ซ้ำกัน
   function combineUnique(arr1, arr2) {
     const map = new Map();
     [...arr1, ...arr2].forEach((item) => {
@@ -62,70 +75,70 @@ export async function GET(request) {
     return Array.from(map.values());
   }
 
-  // ฟังก์ชัน fallback: ใช้ primaryCat แล้ว fallback ด้วย favIDs
+  // fallback
   async function tryFallback(queryFunc, primaryCat, favCats) {
     let results = await queryFunc(primaryCat);
+    console.log(`  queryFunc(${primaryCat}) -> ${results.length} rows`);
+    // ถ้าน้อยกว่า 5 => ลอง favCat
     if (results.length < 5) {
       for (const favCat of favCats) {
-        const fallbackResults = await queryFunc(favCat);
-        results = combineUnique(results, fallbackResults);
+        console.log(`    fallback with cat = ${favCat}`);
+        const fbRes = await queryFunc(favCat);
+        console.log(`    queryFunc(${favCat}) -> ${fbRes.length} rows`);
+        results = combineUnique(results, fbRes);
         if (results.length >= 5) break;
       }
     }
     return results;
   }
 
-  // เริ่มต้น query จากตาราง depart
+  console.log("===== GET /api/recommendation/get-books =====");
+  console.log("Params:", {
+    groupID, facID, depID, catID,
+    favID_1, favID_2, favID_3,
+    userId,
+  });
+
+  // 1) Query Depart + Fallback
   let results = await tryFallback(queryDepart, catID, [favID_1, favID_2, favID_3]);
+  console.log(`Depart final => ${results.length} rows`);
 
-  // ถ้ายังไม่เพียงพอ ให้ queryจากตาราง faculty
-  if (results.length < 5) {
-    const facResults = await tryFallback(queryFaculty, catID, [favID_1, favID_2, favID_3]);
-    results = combineUnique(results, facResults);
+  // 2) ถ้าน้อยกว่า 10 => ไป query Faculty + fallback
+  if (results.length < TOTAL_TARGET) {
+    console.log("  *** Fallback to Faculty ***");
+    let facultyRes = await tryFallback(queryFaculty, catID, [favID_1, favID_2, favID_3]);
+    results = combineUnique(results, facultyRes);
+    console.log(`After faculty => ${results.length} rows`);
   }
 
-  // หากยังไม่ถึง 5 เล่ม ให้ return error
-  if (results.length < 5) {
+  // ถ้ายังน้อยกว่า 10 => return error
+  if (results.length < TOTAL_TARGET) {
+    console.log("  *** STILL < 10 => not enough => return error ***");
     return NextResponse.json({ error: "ไม่สามารถแนะนำหนังสือได้" }, { status: 200 });
   }
 
-  // กรองหนังสือที่ซ้ำกัน
-  const uniqueResults = combineUnique([], results);
-
-  // ถ้า uniqueResults น้อยกว่า 10 เล่ม ให้ return error
-  if (uniqueResults.length < 10) {
-    return NextResponse.json({ error: "ไม่สามารถแนะนำหนังสือได้" }, { status: 200 });
-  }
-
-  // คำนวณ weight โดยใช้สูตร count * rating
-  // ถ้าหนังสืออยู่ใน dislikedIds ให้ลด weight ลง (ลด 50% ตัวอย่าง)
-  uniqueResults.forEach((item) => {
-    let baseWeight = Number(item.rc_alg_bo_count) * Number(item.rc_alg_bo_rating);
-    if (dislikedIds.includes(String(item.rc_alg_bo_pid))) {
-      baseWeight *= 0.5;
-    }
-    item.weight = baseWeight;
+  // คำนวณ weight = count * rating
+  results.forEach((item) => {
+    item.weight = Number(item.rc_alg_bo_count) * Number(item.rc_alg_bo_rating);
   });
 
-  // แบ่งหนังสือตามระดับ rating
-  const group5 = uniqueResults.filter(item => Number(item.rc_alg_bo_rating) === 5);
-  const group4 = uniqueResults.filter(item => Number(item.rc_alg_bo_rating) === 4);
-  const groupLow = uniqueResults.filter(item => {
-    const r = Number(item.rc_alg_bo_rating);
-    return r >= 1 && r <= 3;
+  // Weighted sampling แบ่งตาม rating
+  const group5 = results.filter((r) => Number(r.rc_alg_bo_rating) === 5);
+  const group4 = results.filter((r) => Number(r.rc_alg_bo_rating) === 4);
+  const groupLow = results.filter((r) => {
+    const rat = Number(r.rc_alg_bo_rating);
+    return rat >= 1 && rat <= 3;
   });
 
-  const target5 = 5;   // rating 5 → 50% (5 เล่ม)
-  const target4 = 3;   // rating 4 → 30% (3 เล่ม)
-  const targetLow = 2; // rating 1-3 → 20% (2 เล่ม)
-  const totalTarget = 10;
+  const target5 = 5;
+  const target4 = 3;
+  const targetLow = 2;
 
-  // ฟังก์ชันสุ่มแบบถ่วงน้ำหนัก
   function weightedSample(items, count) {
     const selected = [];
     const itemsCopy = [...items];
     while (selected.length < count && itemsCopy.length > 0) {
-      const totalWeight = itemsCopy.reduce((sum, item) => sum + item.weight, 0);
+      const totalWeight = itemsCopy.reduce((sum, i) => sum + i.weight, 0);
       let r = Math.random() * totalWeight;
       let index = 0;
       for (let i = 0; i < itemsCopy.length; i++) {
@@ -146,26 +159,32 @@ export async function GET(request) {
   const selectedLow = weightedSample(groupLow, Math.min(targetLow, groupLow.length));
 
   let selectedBooks = [...selected5, ...selected4, ...selectedLow];
+  console.log(`After grouped sampling => ${selectedBooks.length} rows`);
 
-  const selectedPids = new Set(selectedBooks.map(item => item.rc_alg_bo_pid));
-  if (selectedBooks.length < totalTarget) {
-    const remainingPool = uniqueResults.filter(item => !selectedPids.has(item.rc_alg_bo_pid));
-    const additionalNeeded = totalTarget - selectedBooks.length;
-    const additionalSelected = weightedSample(remainingPool, Math.min(additionalNeeded, remainingPool.length));
-    selectedBooks = [...selectedBooks, ...additionalSelected];
+  // หากยังไม่ครบ 10 => เติมจาก pool
+  const selectedPids = new Set(selectedBooks.map((i) => i.rc_alg_bo_pid));
+  if (selectedBooks.length < TOTAL_TARGET) {
+    const remainingPool = results.filter((i) => !selectedPids.has(i.rc_alg_bo_pid));
+    const needed = TOTAL_TARGET - selectedBooks.length;
+    const addSel = weightedSample(remainingPool, Math.min(needed, remainingPool.length));
+    selectedBooks = [...selectedBooks, ...addSel];
   }
 
-  if (selectedBooks.length < 10) {
+  console.log(`Final selected => ${selectedBooks.length} rows`);
+  if (selectedBooks.length < TOTAL_TARGET) {
+    console.log("  *** STILL < 10 => return error ***");
     return NextResponse.json({ error: "ไม่สามารถแนะนำหนังสือได้" }, { status: 200 });
   }
 
-  const totalSelectedWeight = selectedBooks.reduce((sum, item) => sum + item.weight, 0);
-  const finalSelection = selectedBooks.map(item => ({
-    pid: item.rc_alg_bo_pid,
-    rating: item.rc_alg_bo_rating,
-    weight: item.weight,
-    probability: totalSelectedWeight ? (item.weight / totalSelectedWeight) : 0
+  // คำนวณ probability
+  const totalWeight = selectedBooks.reduce((sum, i) => sum + i.weight, 0);
+  const finalSelection = selectedBooks.map((i) => ({
+    pid: i.rc_alg_bo_pid,
+    rating: i.rc_alg_bo_rating,
+    weight: i.weight,
+    probability: totalWeight ? i.weight / totalWeight : 0,
   }));
 
-  return NextResponse.json(finalSelection);
+  console.log("===== SUCCESS => Return finalSelection (10 books) =====");
+  return NextResponse.json(finalSelection, { status: 200 });
 }
