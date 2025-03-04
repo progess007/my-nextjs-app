@@ -20,3 +20,29 @@ body {
   background: var(--background);
   font-family: 'Kanit', Arial, Helvetica, sans-serif;
 }
+
+/* ใส่ใน global.css หรือไฟล์ HomeContent.js (ถ้าใช้ <style jsx global>) */
+@keyframes shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* ตัวอย่าง class สำหรับใช้ใน JSX */
+.shimmer-effect {
+  background: linear-gradient(
+    90deg,
+    rgba(156, 81, 245, 0.4),
+    rgba(255, 255, 255, 0.2),
+    rgba(156, 81, 245, 0.4)
+  );
+  background-size: 200% 200%;
+  animation: shimmer 3s linear infinite;
+}
+

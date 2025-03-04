@@ -190,7 +190,7 @@ export default function Home() {
 
       {/* Features Section */}
       <section className="mt-16 px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="bg-white shadow-md rounded-lg p-6 flex flex-col items-center">
+        <div className="bg-white shadow-md rounded-lg p-6 flex flex-col items-center text-center">
           <div className="w-16 h-16 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center">
             <FaUser size={32} /> {/* ใช้ React Icon แทน SVG */}
           </div>

@@ -360,12 +360,12 @@ const BookRecommendations = ({ bookRec }) => {
   // ===============================
   useEffect(() => {
     if (userProfileData) {
-      console.log("User Profile Data:", userProfileData);
-      console.log("Group ID:", userProfileData.groupID);
-      console.log("Consequent (Thai):", userProfileData.consequent);
-      console.log("Category ID (from API):", catID);
-      console.log("Algorithm Books:", algoBooks);
-      console.log("Book Details:", bookDetails);
+      // console.log("User Profile Data:", userProfileData);
+      // console.log("Group ID:", userProfileData.groupID);
+      // console.log("Consequent (Thai):", userProfileData.consequent);
+      // console.log("Category ID (from API):", catID);
+      // console.log("Algorithm Books:", algoBooks);
+      // console.log("Book Details:", bookDetails);
     }
   }, [userProfileData, catID, algoBooks, bookDetails]);
 
@@ -373,89 +373,98 @@ const BookRecommendations = ({ bookRec }) => {
   // Render UI
   // ===============================
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">
-        Algorithm Book Recommendations
-      </h2>
-
-      {algoError ? (
-        <div className="flex flex-col items-center justify-center text-red-600">
-          <FaExclamationCircle size={40} />
-          <p className="mt-4 text-xl font-semibold">{algoError}</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {sortedCombinedBooks.map((book, index) => (
-            <div
-              key={book.rc_bo_pid}
-              className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 p-4 relative cursor-pointer"
-              onClick={() => openModal(book, "full")}
-            >
-              {/* วงกลมแสดงอันดับ */}
-              <div className="absolute top-2 left-2 w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-                {index + 1}
-              </div>
-              {/* รูปภาพหนังสือ */}
-              <div className="w-full h-48 overflow-hidden rounded">
-                <img
-                  src={book.rc_bo_des_img || "/placeholder.jpg"}
-                  alt={book.rc_bo_title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              {/* ชื่อหนังสือ */}
-              <h3 className="mt-4 text-xl font-bold text-gray-800">
-                {book.rc_bo_title}
-              </h3>
-              {/* Icon Actions */}
-              <div className="absolute top-4 right-4 flex flex-col space-y-2">
-                <button
-                  onClick={(e) => toggleFavorite(e, book.rc_bo_pid)}
-                  className="p-2 bg-gray-100 rounded-full transition-colors hover:bg-red-200"
-                >
-                  <FaHeart
-                    size={20}
-                    className={
-                      favorites.includes(book.rc_bo_pid)
-                        ? "text-red-500"
-                        : "text-gray-400"
-                    }
+    <>
+      {/* Title Section */}
+      <div className="p-4 sm:p-8 max-w-7xl mx-auto">
+        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 text-gray-800">
+          Algorithm Book Recommendations
+        </h2>
+  
+        {algoError ? (
+          <div className="flex flex-col items-center justify-center text-red-600">
+            <FaExclamationCircle size={40} />
+            <p className="mt-4 text-lg font-semibold">{algoError}</p>
+          </div>
+        ) : (
+          /* แสดงผล grid: 2 คอลัมน์บน Mobile, 5 คอลัมน์บน Desktop */
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+            {sortedCombinedBooks.map((book, index) => (
+              <div
+                key={book.rc_bo_pid}
+                className="relative bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden 
+                           hover:shadow-lg hover:scale-[1.02] transform transition-all duration-300 cursor-pointer p-2 md:p-4"
+                onClick={() => openModal(book, "full")}
+              >
+                {/* วงกลมแสดงอันดับ */}
+                <div className="absolute top-2 left-2 w-6 h-6 md:w-7 md:h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs md:text-sm font-bold">
+                  {index + 1}
+                </div>
+  
+                {/* รูปภาพหนังสือ: object-contain เพื่อให้เห็นภาพทั้งหมด */}
+                <div className="w-full h-36 md:h-44 overflow-hidden rounded">
+                  <img
+                    src={book.rc_bo_des_img || "/placeholder.jpg"}
+                    alt={book.rc_bo_title}
+                    className="w-full h-full object-contain"
                   />
-                </button>
-                <button
-                  onClick={(e) => toggleDislike(e, book.rc_bo_pid)}
-                  className="p-2 bg-gray-100 rounded-full transition-colors hover:bg-blue-200"
-                >
-                  <FaThumbsDown
-                    size={20}
-                    className={
-                      dislikes.includes(book.rc_bo_pid)
-                        ? "text-blue-500"
-                        : "text-gray-400"
-                    }
-                  />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // ส่งเฉพาะข้อมูลสำหรับ modal info
-                    const infoData = {
-                      rating: book.rating,
-                      weight: book.weight,
-                      probability: book.probability,
-                    };
-                    openModal(infoData, "info");
-                  }}
-                  className="p-2 bg-gray-100 rounded-full transition-colors hover:bg-blue-200"
-                >
-                  <FaInfoCircle size={20} className="text-blue-500" />
-                </button>
+                </div>
+  
+                {/* ชื่อหนังสือ (ปรับฟอนต์เล็กลงบน Mobile) */}
+                <div className="mt-2">
+                  <h3 className="text-xs sm:text-sm md:text-base font-bold text-gray-800 line-clamp-2">
+                    {book.rc_bo_title}
+                  </h3>
+                </div>
+  
+                {/* Icon Actions */}
+                <div className="absolute top-2 right-2 flex flex-col space-y-1">
+                  <button
+                    onClick={(e) => toggleFavorite(e, book.rc_bo_pid)}
+                    className="p-1 bg-gray-100 rounded-full transition-colors hover:bg-red-200"
+                  >
+                    <FaHeart
+                      size={16}
+                      className={
+                        favorites.includes(book.rc_bo_pid)
+                          ? "text-red-500"
+                          : "text-gray-400"
+                      }
+                    />
+                  </button>
+                  <button
+                    onClick={(e) => toggleDislike(e, book.rc_bo_pid)}
+                    className="p-1 bg-gray-100 rounded-full transition-colors hover:bg-blue-200"
+                  >
+                    <FaThumbsDown
+                      size={16}
+                      className={
+                        dislikes.includes(book.rc_bo_pid)
+                          ? "text-blue-500"
+                          : "text-gray-400"
+                      }
+                    />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const infoData = {
+                        rating: book.rating,
+                        weight: book.weight,
+                        probability: book.probability,
+                      };
+                      openModal(infoData, "info");
+                    }}
+                    className="p-1 bg-gray-100 rounded-full transition-colors hover:bg-blue-200"
+                  >
+                    <FaInfoCircle size={16} className="text-blue-500" />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-
+            ))}
+          </div>
+        )}
+      </div>
+  
       {/* Modal Popup */}
       <AnimatePresence>
         {isModalOpen && selectedBook && (
@@ -467,7 +476,14 @@ const BookRecommendations = ({ bookRec }) => {
             onClick={closeModal}
           >
             <motion.div
-              className="bg-white rounded-lg shadow-lg max-w-3xl w-full p-6 relative"
+              /* 
+                 เพิ่ม text-xs sm:text-sm md:text-base ที่ container นี้
+                 เพื่อให้ฟอนต์เล็กลงบน Mobile และขยายเมื่อจอใหญ่ขึ้น
+                 ใส่ max-h-screen + overflow-y-auto เพื่อแก้ปัญหาล้นจอ
+              */
+              className="bg-white rounded-lg shadow-lg max-w-3xl w-full p-6 relative 
+                         max-h-screen overflow-y-auto
+                         text-xs sm:text-sm md:text-base"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
@@ -481,7 +497,7 @@ const BookRecommendations = ({ bookRec }) => {
               </button>
               {modalType === "info" ? (
                 <div className="flex flex-col items-center text-black">
-                  <h2 className="text-2xl font-bold mb-4">สรุปข้อมูล</h2>
+                  <h2 className="text-xl font-bold mb-4">สรุปข้อมูล</h2>
                   <div className="flex items-center space-x-2 mb-2">
                     <FaStar className="text-yellow-500" size={24} />
                     <span className="font-semibold">Rating:</span>
@@ -505,17 +521,15 @@ const BookRecommendations = ({ bookRec }) => {
               ) : (
                 <div>
                   <div className="flex flex-col md:flex-row bg-white rounded shadow p-4 mb-6">
-                    {/* ปกหนังสือ */}
                     <div className="flex-shrink-0">
                       <img
                         src={selectedBook.rc_bo_des_img || "/placeholder.jpg"}
                         alt={selectedBook.rc_bo_title}
-                        className="w-48 h-auto rounded"
+                        className="w-36 h-auto rounded"
                       />
                     </div>
-                    {/* ข้อมูลหนังสือ */}
-                    <div className="md:flex-1 text-gray-800 md:pl-6">
-                      <h3 className="text-xl font-semibold mb-2">
+                    <div className=" md:flex-1 text-gray-800 md:pl-6 mt-4 md:mt-0">
+                      <h3 className="md:text-sm lg:text-xl font-semibold mb-2">
                         {selectedBook.rc_bo_title || "ไม่ระบุชื่อเรื่อง"}
                       </h3>
                       <p className="mb-1">
@@ -532,22 +546,28 @@ const BookRecommendations = ({ bookRec }) => {
                       </p>
                     </div>
                   </div>
-                  {/* แถบ Tab */}
                   <div className="border-b border-gray-300">
-                    <ul className="flex space-x-4 bg-white rounded">
-                      {["Card", "Item", "MARC", "DublinCore", "Review"].map((tab) => (
-                        <li
-                          key={tab}
-                          className={`cursor-pointer py-2 px-4 ${
-                            activeTab === tab
-                              ? "text-green-700 border-b-2 border-green-700 font-semibold"
-                              : "text-gray-700 hover:text-gray-900"
-                          }`}
-                          onClick={() => setActiveTab(tab)}
-                        >
-                          {tab}
-                        </li>
-                      ))}
+                    {/* 
+                        ใช้ flex-wrap เพื่อให้ Tab ตัดบรรทัดหากจอเล็ก
+                        gap-2 แทน space-x-4 
+                    */}
+                    <ul className="flex flex-wrap gap-2 bg-white rounded">
+                      {["Card", "Item", "MARC", "DublinCore", "Review"].map(
+                        (tab) => (
+                          <li
+                            key={tab}
+                            className={`cursor-pointer py-2 px-3 border-b-2 
+                              ${
+                                activeTab === tab
+                                  ? "text-green-700 border-green-700 font-semibold"
+                                  : "border-transparent text-gray-700 hover:text-gray-900"
+                              }`}
+                            onClick={() => setActiveTab(tab)}
+                          >
+                            {tab}
+                          </li>
+                        )
+                      )}
                     </ul>
                   </div>
                   <div className="bg-white rounded shadow mt-4">
@@ -557,8 +577,12 @@ const BookRecommendations = ({ bookRec }) => {
                         <table className="min-w-full border text-sm">
                           <thead>
                             <tr className="bg-gray-100 text-gray-600 uppercase">
-                              <th className="py-2 px-4 border-b text-left w-1/3">Tag</th>
-                              <th className="py-2 px-4 border-b text-left">Data</th>
+                              <th className="py-2 px-4 border-b text-left w-1/3">
+                                Tag
+                              </th>
+                              <th className="py-2 px-4 border-b text-left">
+                                Data
+                              </th>
                             </tr>
                           </thead>
                           <tbody>
@@ -569,8 +593,12 @@ const BookRecommendations = ({ bookRec }) => {
                               { tag: "ผู้แต่งร่วม", data: selectedBook.rc_bo_des_author_name || "ไม่ระบุ" },
                             ].map((item, index) => (
                               <tr key={index} className="hover:bg-gray-50">
-                                <td className="py-2 px-4 border-b text-gray-800">{item.tag}</td>
-                                <td className="py-2 px-4 border-b text-gray-800">{item.data}</td>
+                                <td className="py-2 px-4 border-b text-gray-800">
+                                  {item.tag}
+                                </td>
+                                <td className="py-2 px-4 border-b text-gray-800">
+                                  {item.data}
+                                </td>
                               </tr>
                             ))}
                           </tbody>
@@ -584,8 +612,8 @@ const BookRecommendations = ({ bookRec }) => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
-  );
+    </>
+  );  
 };
 
 export default BookRecommendations;

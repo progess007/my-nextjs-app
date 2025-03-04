@@ -20,8 +20,7 @@ const englishToThai = {
   Technology: "เทคโนโลยี",
   Novel: "นิยาย",
   "World History": "ประวัติศาสตร์โลก",
-  "General Medicine, Health Professions":
-    "แพทย์ศาสตร์ทั่วไป, วิชาชีพด้านสุขภาพ",
+  "General Medicine, Health Professions": "แพทย์ศาสตร์ทั่วไป, วิชาชีพด้านสุขภาพ",
   "Language and literature": "ภาษาศาสตร์ และ วรรณกรรม",
   "Geography, Anthropology": "ภูมิศาสตร์ มานุษยวิทยา",
   Medicine: "ยา",
@@ -83,16 +82,13 @@ const HomeContent = ({ userID }) => {
     3: "สังคมศาสตร์ และ มนุษยศาสตร์",
   };
 
+  // Responsive: ถ้าหน้าจอเล็ก < 640px ให้ปิด accordion ทั้งสอง
   useEffect(() => {
     if (window.innerWidth < 640) {
       setShowAssociation(false);
       setShowProfile(false);
     }
   }, []);
-
-  useEffect(() => {
-    console.log("UserID:", userID);
-  }, [userID]);
 
   // ดึงข้อมูลโปรไฟล์ผู้ใช้
   const fetchProfileData = async () => {
@@ -137,7 +133,7 @@ const HomeContent = ({ userID }) => {
     }
   }, [userID]);
 
-  // เมื่อ profiles เปลี่ยนแปลง ให้คำนวณหากฎความสัมพันธ์ที่ดีที่สุด
+  // เมื่อ profiles เปลี่ยน ให้คำนวณกฎความสัมพันธ์ที่ดีที่สุด
   useEffect(() => {
     if (profiles && profiles.length > 0) {
       queryRecommendations(profiles);
@@ -313,7 +309,7 @@ const HomeContent = ({ userID }) => {
   const userProfileData = useMemo(() => {
     if (latestProfile) {
       return {
-        userID: latestProfile.rc_ac_pid, // เมื่อ SELECT มาจาก DB แล้ว จะไม่เป็น undefined
+        userID: latestProfile.rc_ac_pid,
         faculty: Number(latestProfile.rc_ac_us_pr_fac_pid),
         department: Number(latestProfile.rc_ac_us_pr_dep_pid),
         fav1: Number(latestProfile.rc_ac_us_pr_p1),
@@ -330,7 +326,7 @@ const HomeContent = ({ userID }) => {
     return null;
   }, [latestProfile, recommendations]);
 
-  // ฟังก์ชันสำหรับดึงกฎความสัมพันธ์ที่ดีที่สุด (เลือกแค่ 1 กฎ)
+  // ฟังก์ชันสำหรับดึงกฎความสัมพันธ์ที่ดีที่สุด
   const queryRecommendations = async (profileData) => {
     const groupMapping = {
       group1: [1, 2, 3],
@@ -353,26 +349,24 @@ const HomeContent = ({ userID }) => {
       profileData[0].category3,
     ];
 
-    // แปลงหมวดหมู่จากภาษาไทยเป็นภาษาอังกฤษ (สำหรับ query)
-    const translatedCategories = categories.map((category) => {
-      const translations = {
-        "กฎหมาย": "Law",
-        "เกษตรศาสตร์": "Agriculture",
-        "จิตวิทยา": "Psychology",
-        "เทคโนโลยี": "Technology",
-        "นิยาย": "Novel",
-        "ประวัติศาสตร์โลก": "World History",
-        "แพทย์ศาสตร์ทั่วไป, วิชาชีพด้านสุขภาพ":
-          "General Medicine, Health Professions",
-        "ภาษาศาสตร์ และ วรรณกรรม": "Language and literature",
-        "ภูมิศาสตร์ มานุษยวิทยา": "Geography, Anthropology",
-        "ยา": "Medicine",
-        "วิทยาศาสตร์": "Science",
-        "รัฐศาสตร์": "Political Science",
-        "สังคมศาสตร์": "Social Science",
-      };
-      return translations[category] || category;
-    });
+    // แปลงหมวดหมู่จากไทย -> อังกฤษ สำหรับ query
+    const translations = {
+      "กฎหมาย": "Law",
+      "เกษตรศาสตร์": "Agriculture",
+      "จิตวิทยา": "Psychology",
+      "เทคโนโลยี": "Technology",
+      "นิยาย": "Novel",
+      "ประวัติศาสตร์โลก": "World History",
+      "แพทย์ศาสตร์ทั่วไป, วิชาชีพด้านสุขภาพ": "General Medicine, Health Professions",
+      "ภาษาศาสตร์ และ วรรณกรรม": "Language and literature",
+      "ภูมิศาสตร์ มานุษยวิทยา": "Geography, Anthropology",
+      "ยา": "Medicine",
+      "วิทยาศาสตร์": "Science",
+      "รัฐศาสตร์": "Political Science",
+      "สังคมศาสตร์": "Social Science",
+    };
+
+    const translatedCategories = categories.map((c) => translations[c] || c);
 
     // ลอง query กับ matchCount = 3
     let result = await fetchQuery(translatedCategories, 3, groupAssoPid);
@@ -383,7 +377,7 @@ const HomeContent = ({ userID }) => {
       return;
     }
 
-    // ลอง query กับ matchCount = 2 สำหรับแต่ละคู่
+    // ลอง query กับ matchCount = 2 (แต่ละคู่)
     const pairs = [
       [translatedCategories[0], translatedCategories[1]],
       [translatedCategories[1], translatedCategories[2]],
@@ -399,7 +393,7 @@ const HomeContent = ({ userID }) => {
       }
     }
 
-    // ลอง query กับ matchCount = 1 สำหรับแต่ละหมวดหมู่
+    // ลอง query กับ matchCount = 1
     for (const category of translatedCategories) {
       result = await fetchQuery([category], 1, groupAssoPid);
       if (result && result.length > 0) {
@@ -413,7 +407,7 @@ const HomeContent = ({ userID }) => {
     setRecommendations([]);
   };
 
-  // ฟังก์ชันสำหรับ query กฎจาก API
+  // ฟังก์ชัน query กฎจาก API
   const fetchQuery = async (categories, matchCount, groupAssoPid) => {
     let query = "";
     if (matchCount === 3) {
@@ -453,6 +447,7 @@ const HomeContent = ({ userID }) => {
     }
   };
 
+  // ฟังก์ชันแปลง antecedents/consequent จาก อังกฤษ -> ไทย
   const processRecommendations = (recs) => {
     return recs.map((item) => {
       const parsedRule = item.rc_as_js_rule
@@ -477,91 +472,113 @@ const HomeContent = ({ userID }) => {
 
   return (
     <>
-      <div className="flex flex-col md:flex-row justify-between items-center mx-4 md:mx-6 bg-gray-100 text-white p-4">
+      {/* Title Section */}
+      <div className="flex flex-col md:flex-row justify-between items-center mx-4 md:mx-6 text-black p-4">
         <div>
-          <p className="text-xl sm:text-2xl md:text-4xl font-semibold text-purple-600">
+          {/* ลดฟอนต์ลงบน mobile: text-sm, ขยายบนจอใหญ่ */}
+          <p className="text-sm sm:text-xl md:text-2xl font-semibold text-purple-600">
             User Dashboard
           </p>
         </div>
-        <div className="text-black mt-2 md:mt-0">
-          <a href="#" className="no-underline hover:text-gray-300 text-sm md:text-base">
+        <div className="text-black mt-2 md:mt-0 text-xs sm:text-sm md:text-base">
+          <a href="#" className="no-underline hover:text-gray-400">
             หน้าแรก
           </a>
-          <span className="mx-2 text-sm md:text-base">/</span>
+          <span className="mx-2">/</span>
         </div>
       </div>
+  
+      {/* 2 Cards Section: Association + User Profiles */}
       <div className="mx-4 md:mx-6 mt-4 text-black">
-        <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="mx-2 my-2 bg-white shadow-md rounded-lg p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Association Rule Card */}
+          <div
+            /* กล่องพร้อมเอฟเฟกต์ 3D + Shimmer */
+            className="relative p-1 rounded-md group overflow-hidden"
+            style={{ perspective: "1000px" }}
+          >
+            {/* ชั้นเอฟเฟกต์แสงวิ่ง (Shimmer) */}
             <div
-              className="flex justify-between items-center cursor-pointer"
-              onClick={() => setShowAssociation(!showAssociation)}
+              className="absolute inset-0 shimmer-effect pointer-events-none"
+              style={{ zIndex: 0 }}
+            ></div>
+            {/* ส่วนเนื้อหาการ์ด */}
+            <div
+              className="relative z-10 bg-white p-2 sm:p-4 rounded-md shadow-md transform transition-all
+                         group-hover:scale-105 group-hover:shadow-xl"
+              style={{ transformStyle: "preserve-3d" }}
             >
-              <h3 className="text-xl sm:text-2xl font-bold mb-4 text-black">
-                ข้อมูล กฎความสัมพันธ์ (Association Rule)
-              </h3>
-              <FontAwesomeIcon
-                icon={faChevronDown}
-                className={`transform transition-transform duration-300 ${
-                  showAssociation ? "rotate-180" : "rotate-0"
-                }`}
-              />
-            </div>
-            <div style={{ perspective: 1000 }}>
+              <div
+                className="flex justify-between items-center cursor-pointer"
+                onClick={() => setShowAssociation(!showAssociation)}
+              >
+                {/* ลดฟอนต์: text-sm บน mobile, sm:text-base บนจอใหญ่ขึ้น */}
+                <h3 className="text-sm sm:text-base md:text-lg font-bold mb-2 text-black">
+                  ข้อมูล กฎความสัมพันธ์ (Association Rule)
+                </h3>
+                <FontAwesomeIcon
+                  icon={faChevronDown}
+                  className={`transform transition-transform duration-300 ${
+                    showAssociation ? "rotate-180" : "rotate-0"
+                  }`}
+                />
+              </div>
               <motion.div
                 initial={false}
                 animate={showAssociation ? "open" : "collapsed"}
                 variants={{
-                  open: { opacity: 1, height: "auto", rotateX: 0 },
-                  collapsed: { opacity: 0, height: 0, rotateX: -15 },
+                  open: { opacity: 1, height: "auto" },
+                  collapsed: { opacity: 0, height: 0 },
                 }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.4 }}
                 style={{ overflow: "hidden" }}
               >
-                <ul className="grid grid-cols-1 gap-4">
+                <ul className="grid grid-cols-1 gap-4 mt-2">
                   {recommendations.length > 0 ? (
                     recommendations.map((rec, index) => (
                       <li
                         key={index}
-                        className="p-4 border rounded shadow-lg transform transition-transform duration-300 hover:scale-105"
+                        className="p-2 sm:p-3 border rounded shadow hover:shadow-lg transform transition-transform duration-300 hover:scale-[1.02]"
                       >
-                        <h3 className="text-lg sm:text-xl font-semibold mb-2">
+                        {/* ลดฟอนต์ลงไปอีก: text-xs บน mobile, sm:text-sm, md:text-base */}
+                        <h3 className="text-xs sm:text-sm md:text-base font-semibold mb-1">
                           Group ID: {rec.rc_as_js_GroupAsso_pid}
                         </h3>
-                        <p className="text-sm mb-1">
-                          Rule Number:{" "}
+                        <p className="text-[10px] sm:text-xs md:text-sm mb-1">
+                          <span className="font-semibold">Rule Number:</span>{" "}
                           {rec.rc_as_js_rule?.rule_number || "N/A"}
                         </p>
-                        <p className="text-sm mb-1">
-                          Antecedents:{" "}
+                        <p className="text-[10px] sm:text-xs md:text-sm mb-1">
+                          <span className="font-semibold">Antecedents:</span>{" "}
                           {rec.rc_as_js_rule?.antecedents
                             ? rec.rc_as_js_rule.antecedents.join(", ")
                             : "N/A"}
                         </p>
-                        <p className="text-sm mb-1">
-                          Consequent:{" "}
+                        <p className="text-[10px] sm:text-xs md:text-sm mb-1">
+                          <span className="font-semibold">Consequent:</span>{" "}
                           {rec.rc_as_js_rule?.consequent !== null
                             ? rec.rc_as_js_rule.consequent
                             : "N/A"}
                         </p>
-                        <p className="text-sm">
-                          Support: {rec.rc_as_js_rule?.support || "N/A"}
+                        <p className="text-[10px] sm:text-xs md:text-sm">
+                          <span className="font-semibold">Support:</span>{" "}
+                          {rec.rc_as_js_rule?.support || "N/A"}
                         </p>
-                        <p className="text-sm">
-                          Confidence:{" "}
+                        <p className="text-[10px] sm:text-xs md:text-sm">
+                          <span className="font-semibold">Confidence:</span>{" "}
                           {rec.rc_as_js_rule?.confidence || "N/A"}
                         </p>
                       </li>
                     ))
                   ) : (
-                    <p className="text-sm">
+                    <p className="text-xs sm:text-sm text-gray-500">
                       No matching recommendations found.
                     </p>
                   )}
                 </ul>
                 <hr className="my-4" />
-                <div className="flex justify-between items-center">
-                  <p className="text-sm font-semibold py-2 px-4 rounded">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                  <p className="text-xs sm:text-sm font-semibold py-2 px-4 rounded mb-2 sm:mb-0">
                     กลุ่มความสัมพันธ์ :{" "}
                     <span className="text-purple-600">
                       {recommendations.length > 0
@@ -569,7 +586,7 @@ const HomeContent = ({ userID }) => {
                         : "ไม่ระบุ"}
                     </span>
                   </p>
-                  <p className="text-sm font-semibold py-2 px-4 rounded">
+                  <p className="text-xs sm:text-sm font-semibold py-2 px-4 rounded">
                     กฎความสัมพันธ์ที่จับคู่ได้ทั้งหมด :{" "}
                     <span className="text-purple-600">{matchCount}</span>
                   </p>
@@ -577,33 +594,46 @@ const HomeContent = ({ userID }) => {
               </motion.div>
             </div>
           </div>
-          <div className="mx-2 my-2 bg-white shadow-md rounded-lg p-6">
+  
+          {/* User Profile Card */}
+          <div
+            className="relative p-1 rounded-md group overflow-hidden"
+            style={{ perspective: "1000px" }}
+          >
             <div
-              className="flex justify-between items-center cursor-pointer"
-              onClick={() => setShowProfile(!showProfile)}
+              className="absolute inset-0 shimmer-effect pointer-events-none"
+              style={{ zIndex: 0 }}
+            ></div>
+            <div
+              className="relative z-10 bg-white p-2 sm:p-4 rounded-md shadow-md transform transition-all
+                         group-hover:scale-105 group-hover:shadow-xl"
+              style={{ transformStyle: "preserve-3d" }}
             >
-              <h3 className="text-xl sm:text-2xl font-bold mb-4 text-black">
-                ข้อมูล โปรไฟล์ผู้ใช้ (User Profiles)
-              </h3>
-              <FontAwesomeIcon
-                icon={faChevronDown}
-                className={`transform transition-transform duration-300 ${
-                  showProfile ? "rotate-180" : "rotate-0"
-                }`}
-              />
-            </div>
-            <div style={{ perspective: 1000 }}>
+              <div
+                className="flex justify-between items-center cursor-pointer"
+                onClick={() => setShowProfile(!showProfile)}
+              >
+                <h3 className="text-sm sm:text-base md:text-lg font-bold mb-2 text-black">
+                  ข้อมูล โปรไฟล์ผู้ใช้ (User Profiles)
+                </h3>
+                <FontAwesomeIcon
+                  icon={faChevronDown}
+                  className={`transform transition-transform duration-300 ${
+                    showProfile ? "rotate-180" : "rotate-0"
+                  }`}
+                />
+              </div>
               <motion.div
                 initial={false}
                 animate={showProfile ? "open" : "collapsed"}
                 variants={{
-                  open: { opacity: 1, height: "auto", rotateX: 0 },
-                  collapsed: { opacity: 0, height: 0, rotateX: -15 },
+                  open: { opacity: 1, height: "auto" },
+                  collapsed: { opacity: 0, height: 0 },
                 }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.4 }}
                 style={{ overflow: "hidden" }}
               >
-                <ul>
+                <ul className="mt-2">
                   {cardProfiles.map((card, index) => (
                     <li
                       key={index}
@@ -611,37 +641,37 @@ const HomeContent = ({ userID }) => {
                     >
                       <div className="flex items-center">
                         <div
-                          className={`${card.color} p-2 rounded-md text-white text-2xl`}
+                          className={`${card.color} p-2 rounded-md text-white text-xl sm:text-2xl`}
                         >
                           <FontAwesomeIcon
                             icon={card.icon}
-                            className="w-7 h-5"
+                            className="w-4 h-4 sm:w-5 sm:h-5"
                           />
                         </div>
-                        <div className="ml-5">
-                          <p className="text-sm md:text-base font-semibold text-black">
+                        <div className="ml-2 sm:ml-4">
+                          <p className="text-xs sm:text-base font-semibold text-black">
                             {card.title}
                           </p>
-                          <p className="text-xs sm:text-sm text-gray-500">
+                          <p className="text-[10px] sm:text-sm text-gray-500">
                             {card.subtitle}
                           </p>
                         </div>
                       </div>
-                      <span className="text-xs sm:text-sm">
+                      <span className="text-[10px] sm:text-sm text-gray-600">
                         dataID : {card.dataID}
                       </span>
                     </li>
                   ))}
                 </ul>
                 <hr className="my-4" />
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
                   <button
                     onClick={openEditModal}
-                    className="bg-blue-500 text-white font-semibold py-2 px-4 rounded hover:bg-blue-600 text-sm"
+                    className="bg-blue-500 text-white font-semibold py-2 px-4 rounded hover:bg-blue-600 text-xs sm:text-sm mb-2 sm:mb-0"
                   >
-                    แก้ไขข้มูล Profiles
+                    แก้ไขข้อมูล Profiles
                   </button>
-                  <p className="text-xs sm:text-sm text-gray-500">
+                  <p className="text-[10px] sm:text-sm text-gray-500">
                     Profiles Revision :{" "}
                     <span className="text-purple-600">
                       {latestProfile?.rc_ac_us_pr_revision ?? "ไม่มีข้อมูล"}
@@ -653,6 +683,7 @@ const HomeContent = ({ userID }) => {
           </div>
         </div>
       </div>
+  
       {/* ส่ง userProfileData ไปให้ BookRecommendations */}
       <BookRecommendations
         bookRec={{
@@ -661,6 +692,8 @@ const HomeContent = ({ userID }) => {
           userProfileData,
         }}
       />
+  
+      {/* Modal สร้าง/แก้ไข Profile */}
       {showModal && (
         <main className="p-4">
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -690,9 +723,7 @@ const HomeContent = ({ userID }) => {
                   </select>
                 </div>
                 <div>
-                  <label className="block mb-1 text-sm">
-                    Department (สาขา)
-                  </label>
+                  <label className="block mb-1 text-sm">Department (สาขา)</label>
                   <select
                     className="border p-2 w-full text-sm"
                     value={department}
@@ -783,7 +814,7 @@ const HomeContent = ({ userID }) => {
         </main>
       )}
     </>
-  );
+  );      
 };
 
 export default HomeContent;
