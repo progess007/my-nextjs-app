@@ -74,7 +74,8 @@ export async function POST(request) {
         port: 587,
         secure: false, // ใช้ TLS
         auth: {
-            // user: 'ubu.recommend@gmail.com',
+            user: 'ubu.recommend@gmail.com',
+            pass: 'sssssss'
             // pass: 'dbxy qzsg pzlz wbox',
         },
         // debug: true, // เปิด debug mode
