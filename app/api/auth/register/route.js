@@ -104,7 +104,7 @@ export async function POST(request) {
 
     await transporter.sendMail(mailOptions);
 
-    return NextResponse.json({ success: true, message: 'สมัครสมาชิกสำเร็จ โปรดยืนยันอีเมลของคุณ' });
+    return NextResponse.json({ success: true, message: 'สมัครสมาชิกสำเร็จ โปรดยืนยันการสมัครผ่าน email ของคุณ' });
   } catch (error) {
     console.error('Error during registration:', error);
     return NextResponse.json(

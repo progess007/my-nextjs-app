@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { db } from "@/utils/db";
-import { format } from "date-fns";
-import { zonedTimeToUtc, formatInTimeZone } from "date-fns-tz";
+import { formatInTimeZone } from "date-fns-tz";
 
 const SECRET_KEY = process.env.SECRET_KEY;
 
@@ -20,40 +19,83 @@ export async function POST(req) {
 
     if (step === 3) {
       if (!email || !email.trim()) {
-        return NextResponse.json({ message: "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง" }, { status: 400 });
+        return NextResponse.json(
+          { message: "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง" },
+          { status: 400 }
+        );
       }
 
-      const [rows] = await db.query("SELECT * FROM rc_accounts WHERE rc_ac_email = ?", [email]);
+      const [rows] = await db.query(
+        "SELECT * FROM rc_accounts WHERE rc_ac_email = ?",
+        [email]
+      );
 
       if (rows.length === 0) {
-        return NextResponse.json({ message: "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง" }, { status: 401 });
+        return NextResponse.json(
+          { message: "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง" },
+          { status: 401 }
+        );
       }
 
       user = rows[0];
-      const passwordMatch = await bcrypt.compare(password, user.rc_ac_password);
 
+      // ตรวจสอบสถานะการยืนยันตัวตนผ่าน email
+      if (user.rc_ac_token_status !== 1) {
+        return NextResponse.json(
+          { message: "ยังไม่ได้ยืนยันตัวตนผ่าน email" },
+          { status: 403 }
+        );
+      }
+
+      const passwordMatch = await bcrypt.compare(password, user.rc_ac_password);
       if (!passwordMatch) {
-        return NextResponse.json({ message: "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง" }, { status: 401 });
+        return NextResponse.json(
+          { message: "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง" },
+          { status: 401 }
+        );
       }
     } else if (step === 5) {
       if (!std_username || !std_username.trim()) {
-        return NextResponse.json({ message: "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง" }, { status: 400 });
+        return NextResponse.json(
+          { message: "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง" },
+          { status: 400 }
+        );
       }
 
-      const [rows] = await db.query("SELECT * FROM rc_accounts WHERE rc_ac_student_id = ?", [std_username]);
+      const [rows] = await db.query(
+        "SELECT * FROM rc_accounts WHERE rc_ac_student_id = ?",
+        [std_username]
+      );
 
       if (rows.length === 0) {
-        return NextResponse.json({ message: "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง" }, { status: 401 });
+        return NextResponse.json(
+          { message: "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง" },
+          { status: 401 }
+        );
       }
 
       user = rows[0];
-      const passwordMatch = await bcrypt.compare(std_password, user.rc_ac_password);
 
+      // ตรวจสอบสถานะการยืนยันตัวตนผ่าน email
+      if (user.rc_ac_token_status !== 1) {
+        return NextResponse.json(
+          { message: "ยังไม่ได้ยืนยันตัวตนผ่าน email" },
+          { status: 403 }
+        );
+      }
+
+      const passwordMatch = await bcrypt.compare(std_password, user.rc_ac_password);
       if (!passwordMatch) {
-        return NextResponse.json({ message: "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง" }, { status: 401 });
+        return NextResponse.json(
+          { message: "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง" },
+          { status: 401 }
+        );
       }
     } else {
-      return NextResponse.json({ message: "Invalid step" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Invalid step" },
+        { status: 400 }
+      );
     }
 
     const token = jwt.sign(
@@ -62,10 +104,7 @@ export async function POST(req) {
       { expiresIn: "7d" } // อายุ 7 วัน
     );
 
-    const decoded = jwt.verify(token, SECRET_KEY);
-
     let redirectURL;
-
     if (user.rc_ac_permissions === 1) {
       redirectURL = "/dashboard/admin";
     } else if (user.rc_ac_permissions === 2) {
@@ -73,11 +112,11 @@ export async function POST(req) {
     } else {
       return NextResponse.json(
         { message: "สิทธิ์การเข้าถึงไม่ถูกต้อง" },
-        { status: 403 } // Forbidden
+        { status: 403 }
       );
     }
 
-    // บันทึกข้อมูลลงในตาราง rc_log_login
+    // บันทึกข้อมูลการเข้าสู่ระบบลงในตาราง rc_log_login
     const timeZone = "Asia/Bangkok";
     const loginDate = formatInTimeZone(new Date(), timeZone, "yyyy-MM-dd HH:mm:ss");
     await db.query(
