@@ -16,7 +16,7 @@
 }
 
 body {
-  color: var(--foreground);
+  color: black;
   background: var(--background);
   font-family: "Itim", Arial, Helvetica, sans-serif;
   font-weight: 400;

@@ -35,19 +35,6 @@ const Sidebar = React.memo(({ user, setCurrentPage, currentPage, isSidebarOpen, 
     });
   };
 
-  // const handleSetting = () => {
-  //   Swal.fire({
-  //     title: 'คุณแน่ใจหรือไม่?',
-  //     text: 'คุณต้องการออกจากระบบใช่หรือไม่',
-  //     icon: 'warning',
-  //     showCancelButton: true,
-  //     confirmButtonColor: '#3085d6',
-  //     cancelButtonColor: '#d33',
-  //     confirmButtonText: 'ใช่, ออกจากระบบ',
-  //     cancelButtonText: 'ยกเลิก',
-  //   });
-  // };
-
   const menuItems = [
     { label: 'หน้าหลัก', icon: FaHome, page: 'home' },
     { label: 'ค้นหาหนังสือ', icon: FaChalkboardTeacher, page: 'search' },

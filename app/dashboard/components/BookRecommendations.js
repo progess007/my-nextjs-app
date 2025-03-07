@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { FaHeart, FaThumbsDown, FaInfoCircle, FaStar, FaBalanceScale, FaPercentage, FaExclamationCircle } from "react-icons/fa";
+import { FaHeart, FaThumbsDown, FaInfoCircle, FaStar, FaBalanceScale, FaPercentage, FaExclamationCircle, FaBook } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import Swal from "sweetalert2";
 
@@ -402,11 +402,18 @@ const BookRecommendations = ({ bookRec }) => {
   
                 {/* รูปภาพหนังสือ: object-contain เพื่อให้เห็นภาพทั้งหมด */}
                 <div className="w-full h-36 md:h-44 overflow-hidden rounded">
-                  <img
-                    src={book.rc_bo_des_img || "/placeholder.jpg"}
-                    alt={book.rc_bo_title}
-                    className="w-full h-full object-contain"
-                  />
+                  {book.rc_bo_des_img ? (
+                    <img
+                      src={book.rc_bo_des_img}
+                      alt={book.rc_bo_title}
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                      <FaBook className="text-gray-400" size={40} />
+                    </div>
+                  )}
+                  
                 </div>
   
                 {/* ชื่อหนังสือ (ปรับฟอนต์เล็กลงบน Mobile) */}
