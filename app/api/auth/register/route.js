@@ -75,7 +75,8 @@ export async function POST(request) {
         secure: false, // ใช้ TLS
         auth: {
             user: 'ubu.recommend@gmail.com',
-            pass: 'dbxy qzsg pzlz wbox',
+            pass: 'sssssss'
+            // pass: 'dbxy qzsg pzlz wbox',
         },
         // debug: true, // เปิด debug mode
         // logger: true, // Log รายละเอียดของ SMTP
