@@ -168,7 +168,7 @@ const LoginModal = ({ isOpen, onClose, step, setStep }) => {
       const result = await response.json();
   
       if (response.ok && result.success) {
-        Swal.fire('สมัครสมาชิกสำเร็จ', 'คุณสามารถเข้าสู่ระบบได้ทันที', 'success');
+        Swal.fire('สมัครสมาชิกสำเร็จ', 'โปรดยืนยันการสมัครผ่าน อีเมลนักศึกษา ของคุณ', 'success');
         setStep(1);
         onClose();
       } else {
