@@ -498,10 +498,10 @@ const HomeContent = ({ userID }) => {
             style={{ perspective: "1000px" }}
           >
             {/* ชั้นเอฟเฟกต์แสงวิ่ง (Shimmer) */}
-            <div
+            {/* <div
               className="absolute inset-0 shimmer-effect pointer-events-none"
               style={{ zIndex: 0 }}
-            ></div>
+            ></div> */}
             {/* ส่วนเนื้อหาการ์ด */}
             <div
               className="relative z-10 bg-white p-2 sm:p-4 rounded-md shadow-md transform transition-all
