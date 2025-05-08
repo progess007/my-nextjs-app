@@ -409,40 +409,70 @@ const HomeContent = ({ userID }) => {
 
   // ฟังก์ชัน query กฎจาก API
   const fetchQuery = async (categories, matchCount, groupAssoPid) => {
-    let query = "";
+    let query = '';
+  
+    // Helper สร้าง JSON_ARRAY(...) จาก categories
+    const buildJsonArray = (cats) =>
+      `JSON_ARRAY(${cats.map(cat => `'${cat}'`).join(', ')})`;
+  
     if (matchCount === 3) {
-      query = `SELECT * FROM rc_association_json
-                WHERE JSON_CONTAINS(JSON_EXTRACT(rc_as_js_rule, '$.antecedents'), '${JSON.stringify(
-                  categories
-                )}')
-                AND rc_as_js_GroupAsso_pid = ${groupAssoPid};`;
+      query = `
+        SELECT assoc.*, rev.*
+        FROM rc_association_json AS assoc
+        LEFT JOIN rc_revision_association_json AS rev
+          ON assoc.rc_as_js_revision_pid = rev.rc_rev_as_pid
+        WHERE JSON_CONTAINS(
+                JSON_EXTRACT(assoc.rc_as_js_rule, '$.antecedents'),
+                ${buildJsonArray(categories)}
+              )
+          AND assoc.rc_as_js_GroupAsso_pid = ${groupAssoPid}
+          AND rev.rc_rev_as_active = 1;
+      `;
     } else if (matchCount === 2) {
-      const conditions = categories
-        .map(
-          (cat) =>
-            `JSON_CONTAINS(JSON_EXTRACT(rc_as_js_rule, '$.antecedents'), '"${cat}"')`
+      // สร้างเงื่อนไข JSON_CONTAINS ทีละรายการ
+      const containsConds = categories
+        .map(cat =>
+          `JSON_CONTAINS(JSON_EXTRACT(assoc.rc_as_js_rule, '$.antecedents'), JSON_ARRAY('${cat}'))`
         )
-        .join(" AND ");
-      query = `SELECT * FROM rc_association_json
-                WHERE ${conditions}
-                AND JSON_LENGTH(JSON_EXTRACT(rc_as_js_rule, '$.antecedents')) = 2
-                AND rc_as_js_GroupAsso_pid = ${groupAssoPid};`;
+        .join(' AND ');
+  
+      query = `
+        SELECT assoc.*, rev.*
+        FROM rc_association_json AS assoc
+        LEFT JOIN rc_revision_association_json AS rev
+          ON assoc.rc_as_js_revision_pid = rev.rc_rev_as_pid
+        WHERE ${containsConds}
+          AND JSON_LENGTH(JSON_EXTRACT(assoc.rc_as_js_rule, '$.antecedents')) = 2
+          AND assoc.rc_as_js_GroupAsso_pid = ${groupAssoPid}
+          AND rev.rc_rev_as_active = 1;
+      `;
     } else {
-      query = `SELECT * FROM rc_association_json
-                WHERE JSON_CONTAINS(JSON_EXTRACT(rc_as_js_rule, '$.antecedents'), '"${categories[0]}"')
-                AND JSON_LENGTH(JSON_EXTRACT(rc_as_js_rule, '$.antecedents')) = 1
-                AND rc_as_js_GroupAsso_pid = ${groupAssoPid};`;
+      // กรณี matchCount === 1
+      query = `
+        SELECT assoc.*, rev.*
+        FROM rc_association_json AS assoc
+        LEFT JOIN rc_revision_association_json AS rev
+          ON assoc.rc_as_js_revision_pid = rev.rc_rev_as_pid
+        WHERE JSON_CONTAINS(
+                JSON_EXTRACT(assoc.rc_as_js_rule, '$.antecedents'),
+                JSON_ARRAY('${categories[0]}')
+              )
+          AND JSON_LENGTH(JSON_EXTRACT(assoc.rc_as_js_rule, '$.antecedents')) = 1
+          AND assoc.rc_as_js_GroupAsso_pid = ${groupAssoPid}
+          AND rev.rc_rev_as_active = 1;
+      `;
     }
+  
     try {
-      const res = await fetch("/api/association", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/association', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
       });
       if (!res.ok) return null;
       return await res.json();
     } catch (err) {
-      console.error("Error fetching query:", err);
+      console.error('Error fetching query:', err);
       return null;
     }
   };
