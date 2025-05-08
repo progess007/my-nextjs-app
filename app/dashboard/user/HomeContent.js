@@ -16,7 +16,7 @@ import Swal from "sweetalert2";
 const englishToThai = {
   Law: "กฎหมาย",
   Agriculture: "เกษตรศาสตร์",
-  Psychology: "จิตวิทยา",
+  "Philosophy Psychology": "จิตวิทยา",
   Technology: "เทคโนโลยี",
   Novel: "นิยาย",
   "World History": "ประวัติศาสตร์โลก",
