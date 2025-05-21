@@ -529,11 +529,19 @@ const BookRecommendations = ({ bookRec }) => {
                 <div>
                   <div className="flex flex-col md:flex-row bg-white rounded shadow p-4 mb-6">
                     <div className="flex-shrink-0">
-                      <img
-                        src={selectedBook.rc_bo_des_img || "/placeholder.jpg"}
-                        alt={selectedBook.rc_bo_title}
-                        className="w-36 h-auto rounded"
-                      />
+
+                      {selectedBook.rc_bo_des_img ? (
+                        <img
+                          src={selectedBook.rc_bo_des_img}
+                          alt={selectedBook.rc_bo_title}
+                          className="w-48 h-48 object-contain"
+                        />
+                      ) : (
+                        <div className="w-48 h-48 rounded bg-gray-200 flex items-center justify-center">
+                          <FaBook className="text-gray-400" size={40} />
+                        </div>
+                      )}
+
                     </div>
                     <div className=" md:flex-1 text-gray-800 md:pl-6 mt-4 md:mt-0">
                       <h3 className="md:text-sm lg:text-xl font-semibold mb-2">

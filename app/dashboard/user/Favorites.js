@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { FaTrashAlt, FaInfoCircle, FaExclamationCircle, FaStar, FaBalanceScale, FaPercentage } from "react-icons/fa";
+import { FaTrashAlt, FaInfoCircle, FaExclamationCircle, FaStar, FaBalanceScale, FaPercentage, FaBook} from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import Swal from "sweetalert2";
 
@@ -208,11 +208,21 @@ const Favorites = ({ userID }) => {
               </div>
               {/* รูปหนังสือ */}
               <div className="w-full h-48 overflow-hidden rounded">
-                <img
-                  src={book.rc_bo_des_img || "/placeholder.jpg"}
-                  alt={book.rc_bo_title}
-                  className="w-full h-full object-cover"
-                />
+                
+                
+                {book.rc_bo_des_img ? (
+                  <img
+                    src={book.rc_bo_des_img}
+                    alt={book.rc_bo_title}
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                    <FaBook className="text-gray-400" size={40} />
+                  </div>
+                )}
+
+
               </div>
               {/* ชื่อหนังสือ */}
               <h3 className="mt-4 text-xl font-bold text-gray-800">
@@ -300,11 +310,19 @@ const Favorites = ({ userID }) => {
                 <div>
                   <div className="flex flex-col md:flex-row bg-white rounded shadow p-4 mb-6">
                     <div className="flex-shrink-0">
-                      <img
-                        src={selectedBook.rc_bo_des_img || "/placeholder.jpg"}
-                        alt={selectedBook.rc_bo_title}
-                        className="w-48 h-auto rounded"
-                      />
+
+                      {selectedBook.rc_bo_des_img ? (
+                        <img
+                          src={selectedBook.rc_bo_des_img}
+                          alt={selectedBook.rc_bo_title}
+                          className="w-48 h-48 object-contain"
+                        />
+                      ) : (
+                        <div className="w-48 h-48 rounded bg-gray-200 flex items-center justify-center">
+                          <FaBook className="text-gray-400" size={40} />
+                        </div>
+                      )}
+
                     </div>
                     <div className="md:flex-1 text-gray-800 md:pl-6">
                       <h3 className="text-xl font-semibold mb-2">

@@ -289,7 +289,7 @@ export default function NewBooks({ userID }) {
         transition={{ duration: 0.5 }}
         className="text-2xl font-bold mb-6 text-gray-800"
       >
-        New Books
+        นำเข้าทรัพยากรใหม่
       </motion.h2>
 
       {/* Upload + Search (Uploaded) */}
