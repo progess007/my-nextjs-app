@@ -17,16 +17,12 @@ export async function GET(request) {
       SELECT 
         stock.rc_bo_title AS title,
         stock.rc_bo_pid,
-        algo.rc_alg_bo_count AS borrow_count
-      FROM 
-        rc_algorithm_book_rating_depart AS algo
-      JOIN 
-        rc_book_stock AS stock
-      ON 
-        algo.rc_alg_bo_pid = stock.rc_bo_pid
-      ORDER BY 
-        algo.rc_alg_bo_count DESC
-      LIMIT 6
+        algo.rc_alg_bo_count AS borrow_count,
+        des.rc_bo_des_img AS imageUrl
+        FROM rc_algorithm_book_rating_depart AS algo
+        JOIN rc_book_stock AS stock ON algo.rc_alg_bo_pid = stock.rc_bo_pid
+        JOIN rc_book_descriptions AS des ON des.rc_bo_pid = stock.rc_bo_pid
+        ORDER BY algo.rc_alg_bo_count DESC LIMIT 6;
     `);
 
     // ปิดการเชื่อมต่อ
